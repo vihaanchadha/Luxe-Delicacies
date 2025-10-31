@@ -70,7 +70,14 @@ const services = [
 ];
 
 function InfoDrawer({ isOpen, onClose }) {
+  const navigate = useNavigate();
+
   if (!isOpen) return null;
+
+  const handleSignInClick = () => {
+    onClose();
+    navigate('/login');
+  };
 
   return (
     <>
@@ -99,11 +106,11 @@ function InfoDrawer({ isOpen, onClose }) {
             <div className="pb-6 border-b flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold mb-2">Phone</h2>
-                <p className="text-gray-600">(765) 476-1558</p>
+                <a href="tel:7654761558" className="text-gray-600 hover:text-black">(765) 476-1558</a>
               </div>
-              <button className="p-3 bg-gray-100 rounded-full hover:bg-gray-200">
+              <a href="tel:7654761558" className="p-3 bg-gray-100 rounded-full hover:bg-gray-200">
                 <Phone className="w-6 h-6" />
-              </button>
+              </a>
             </div>
 
             <div className="pb-6 border-b flex items-center justify-between">
@@ -119,12 +126,22 @@ function InfoDrawer({ isOpen, onClose }) {
             <div className="pb-6 border-b">
               <h2 className="text-xl font-semibold mb-4">Follow</h2>
               <div className="flex gap-4">
-                <button className="p-3 bg-gray-100 rounded-full hover:bg-gray-200">
+                <a 
+                  href="https://www.instagram.com/LuxeDelicacies" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="p-3 bg-gray-100 rounded-full hover:bg-gray-200"
+                >
                   <Instagram className="w-6 h-6" />
-                </button>
-                <button className="p-3 bg-gray-100 rounded-full hover:bg-gray-200">
+                </a>
+                <a 
+                  href="https://www.facebook.com/LuxeDelicacies" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="p-3 bg-gray-100 rounded-full hover:bg-gray-200"
+                >
                   <Facebook className="w-6 h-6" />
-                </button>
+                </a>
               </div>
             </div>
 
@@ -133,13 +150,16 @@ function InfoDrawer({ isOpen, onClose }) {
                 <h2 className="text-xl font-semibold mb-2">Text us</h2>
                 <p className="text-gray-600">We'll reply as soon as we can</p>
               </div>
-              <button className="p-3 bg-gray-100 rounded-full hover:bg-gray-200">
+              <a href="sms:7654761558" className="p-3 bg-gray-100 rounded-full hover:bg-gray-200">
                 <Mail className="w-6 h-6" />
-              </button>
+              </a>
             </div>
           </div>
 
-          <button className="w-full mt-8 py-4 bg-black text-white rounded-lg font-semibold hover:bg-gray-800">
+          <button 
+            onClick={handleSignInClick}
+            className="w-full mt-8 py-4 bg-black text-white rounded-lg font-semibold hover:bg-gray-800"
+          >
             Sign in
           </button>
         </div>
@@ -213,6 +233,139 @@ function Navigation() {
 
       <InfoDrawer isOpen={infoDrawerOpen} onClose={() => setInfoDrawerOpen(false)} />
     </>
+  );
+}
+
+function LoginPage() {
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    alert(isSignUp ? 'Account created!' : 'Logged in!');
+    navigate('/');
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+        <button 
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-gray-600 hover:text-black mb-6"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="text-sm">Back</span>
+        </button>
+
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 bg-gray-100 border border-gray-300 flex items-center justify-center mx-auto mb-4">
+            <div className="text-center">
+              <div className="text-3xl font-serif">LD</div>
+              <div className="text-xs tracking-wider">LUXE</div>
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold mb-2">{isSignUp ? 'Create Account' : 'Sign In'}</h1>
+          <p className="text-gray-600">Welcome to Luxe Delicacies</p>
+        </div>
+
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setIsSignUp(false)}
+            className={`flex-1 py-3 rounded-lg font-semibold transition ${
+              !isSignUp ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Sign In
+          </button>
+          <button
+            onClick={() => setIsSignUp(true)}
+            className={`flex-1 py-3 rounded-lg font-semibold transition ${
+              isSignUp ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Sign Up
+          </button>
+        </div>
+
+        <div onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            {isSignUp && (
+              <div>
+                <label className="block text-sm font-semibold mb-2">Full Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-semibold mb-2">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-2">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+
+            {!isSignUp && (
+              <div className="text-right">
+                <button type="button" className="text-sm text-gray-600 hover:text-black">
+                  Forgot password?
+                </button>
+              </div>
+            )}
+
+            <button
+              onClick={handleSubmit}
+              className="w-full py-4 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition"
+            >
+              {isSignUp ? 'Create Account' : 'Sign In'}
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-6 text-center text-sm text-gray-600">
+          {isSignUp ? (
+            <p>
+              Already have an account?{' '}
+              <button onClick={() => setIsSignUp(false)} className="text-black font-semibold hover:underline">
+                Sign in
+              </button>
+            </p>
+          ) : (
+            <p>
+              Don't have an account?{' '}
+              <button onClick={() => setIsSignUp(true)} className="text-black font-semibold hover:underline">
+                Sign up
+              </button>
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -491,67 +644,46 @@ function Footer() {
           <div>
             <h3 className="text-lg mb-4">Follow</h3>
             <div className="space-y-2">
-              <p className="text-gray-400 hover:text-white cursor-pointer">Instagram</p>
+              <a href="https://www.instagram.com/LuxeDelicacies" target="_blank" rel="noopener noreferrer" className="block text-gray-400 hover:text-white">Instagram</a>
+              <a href="https://www.facebook.com/LuxeDelicacies" target="_blank" rel="noopener noreferrer" className="block text-gray-400 hover:text-white">Facebook</a>
               <p className="text-gray-400 hover:text-white cursor-pointer">TikTok</p>
-              <p className="text-gray-400 hover:text-white cursor-pointer">Facebook</p>
             </div>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-800 pt-12">
-          <div className="max-w-xl">
-            <h3 className="text-2xl font-serif mb-6">Stay in the Loop</h3>
-            <div className="flex gap-4">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                className="flex-1 px-4 py-3 bg-transparent border border-gray-700 focus:border-white outline-none"
-              />
-              <button 
-                onClick={handleSubmit}
-                className="px-8 py-3 bg-white text-black hover:bg-gray-200 transition"
-              >
-                Sign Up
-              </button>
-            </div>
-            <p className="text-xs text-gray-500 mt-4">
-              This form is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.
-            </p>
           </div>
         </div>
 
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center space-x-4 mb-4 md:mb-0">
-            <div className="w-12 h-12 bg-white flex items-center justify-center">
-              <div className="text-center text-black text-xs">
-                <div className="font-serif">LD</div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <Mail className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
-            <Facebook className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
-            <Instagram className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
-            <span className="text-gray-400">© 2025</span>
+      <div className="flex items-center space-x-4 mb-4 md:mb-0">
+        <div className="w-12 h-12 bg-white flex items-center justify-center">
+          <div className="text-center text-black text-xs">
+            <div className="font-serif">LD</div>
           </div>
         </div>
       </div>
-    </footer>
-  );
+      
+      <div className="flex items-center space-x-4">
+        <Mail className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
+        <a href="https://www.facebook.com/LuxeDelicacies" target="_blank" rel="noopener noreferrer">
+          <Facebook className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
+        </a>
+        <a href="https://www.instagram.com/LuxeDelicacies" target="_blank" rel="noopener noreferrer">
+          <Instagram className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
+        </a>
+        <span className="text-gray-400">© 2025</span>
+      </div>
+    </div>
+  </div>
+</footer>);
 }
-
 export default function App() {
-  return (
-    <Router>
-      <Navigation />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/services" element={<ServicesPage />} />
-        <Route path="/service/:serviceId" element={<ServiceDetailPage />} />
-      </Routes>
-    </Router>
-  );
+return (
+<Router>
+<Navigation />
+<Routes>
+<Route path="/" element={<HomePage />} />
+<Route path="/services" element={<ServicesPage />} />
+<Route path="/service/:serviceId" element={<ServiceDetailPage />} />
+<Route path="/login" element={<LoginPage />} />
+</Routes>
+</Router>
+);
 }
