@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams } from 'react-router-dom';
 import { ShoppingCart, Search, Menu, X, Instagram, Facebook, Mail, ArrowLeft, Phone, Clock } from 'lucide-react';
+import ShopPage from './shopPage'; // <-- make sure this path matches your file name (shopPage.jsx)
 
 const services = [
   {
@@ -188,8 +189,13 @@ function Navigation() {
             </Link>
             
             <div className="hidden md:flex space-x-8">
-              <a href="#home" className="text-sm tracking-wide hover:text-gray-600 transition">PREPACKAGED TREATS/PICKUP & ...</a>
-              <Link to="/services" className="text-sm tracking-wide hover:text-gray-600 transition">TREAT SERVICES AND PARTY ...</Link>
+              {/* CHANGED: anchor -> Link to /shop */}
+              <Link to="/shop" className="text-sm tracking-wide hover:text-gray-600 transition">
+                PREPACKAGED TREATS/PICKUP & ...
+              </Link>
+              <Link to="/services" className="text-sm tracking-wide hover:text-gray-600 transition">
+                TREAT SERVICES AND PARTY ...
+              </Link>
             </div>
 
             <div className="flex items-center space-x-4">
@@ -218,10 +224,15 @@ function Navigation() {
         {mobileMenuOpen && (
           <div className="md:hidden bg-white border-t">
             <div className="px-4 py-4 space-y-3">
-              <a href="#home" className="block text-sm tracking-wide">PREPACKAGED TREATS/PICKUP</a>
-              <Link to="/services" className="block text-sm tracking-wide">TREAT SERVICES AND PARTY</Link>
+              {/* CHANGED: anchor -> Link to /shop */}
+              <Link to="/shop" className="block text-sm tracking-wide" onClick={() => setMobileMenuOpen(false)}>
+                PREPACKAGED TREATS/PICKUP
+              </Link>
+              <Link to="/services" className="block text-sm tracking-wide" onClick={() => setMobileMenuOpen(false)}>
+                TREAT SERVICES AND PARTY
+              </Link>
               <button 
-                onClick={() => navigate('/services')}
+                onClick={() => { setMobileMenuOpen(false); navigate('/services'); }}
                 className="w-full px-6 py-2 border border-black text-sm tracking-wide"
               >
                 Book Now
@@ -652,38 +663,41 @@ function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-      <div className="flex items-center space-x-4 mb-4 md:mb-0">
-        <div className="w-12 h-12 bg-white flex items-center justify-center">
-          <div className="text-center text-black text-xs">
-            <div className="font-serif">LD</div>
+          <div className="flex items-center space-x-4 mb-4 md:mb-0">
+            <div className="w-12 h-12 bg-white flex items-center justify-center">
+              <div className="text-center text-black text-xs">
+                <div className="font-serif">LD</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <Mail className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
+            <a href="https://www.facebook.com/LuxeDelicacies" target="_blank" rel="noopener noreferrer">
+              <Facebook className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
+            </a>
+            <a href="https://www.instagram.com/LuxeDelicacies" target="_blank" rel="noopener noreferrer">
+              <Instagram className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
+            </a>
+            <span className="text-gray-400">© 2025</span>
           </div>
         </div>
       </div>
-      
-      <div className="flex items-center space-x-4">
-        <Mail className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
-        <a href="https://www.facebook.com/LuxeDelicacies" target="_blank" rel="noopener noreferrer">
-          <Facebook className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
-        </a>
-        <a href="https://www.instagram.com/LuxeDelicacies" target="_blank" rel="noopener noreferrer">
-          <Instagram className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
-        </a>
-        <span className="text-gray-400">© 2025</span>
-      </div>
-    </div>
-  </div>
-</footer>);
+    </footer>
+  );
 }
+
 export default function App() {
-return (
-<Router>
-<Navigation />
-<Routes>
-<Route path="/" element={<HomePage />} />
-<Route path="/services" element={<ServicesPage />} />
-<Route path="/service/:serviceId" element={<ServiceDetailPage />} />
-<Route path="/login" element={<LoginPage />} />
-</Routes>
-</Router>
-);
+  return (
+    <Router>
+      <Navigation />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/shop" element={<ShopPage />} /> {/* ADDED route */}
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/service/:serviceId" element={<ServiceDetailPage />} />
+        <Route path="/login" element={<LoginPage />} />
+      </Routes>
+    </Router>
+  );
 }
