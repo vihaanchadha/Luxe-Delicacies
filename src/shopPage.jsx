@@ -1,6 +1,27 @@
+// src/ShopPage.jsx
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { products, displayPrice } from './data/products';
+
+const PANCAKES_ID = '10-mini-pancakes'; // <-- change to match your products.js id
+
+// --- Small reusable modal ---
+function Modal({ open, onClose, children }) {
+  if (!open) return null;
+  return (
+    <>
+      <div
+        className="fixed inset-0 bg-black/50 z-50"
+        onClick={onClose}
+      />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="bg-white w-full max-w-3xl rounded-2xl shadow-xl overflow-hidden">
+          {children}
+        </div>
+      </div>
+    </>
+  );
+}
 
 export default function ShopPage() {
   // Slider bounds
@@ -18,7 +39,12 @@ export default function ShopPage() {
   const [q, setQ] = useState('');
   const [sort, setSort] = useState('popularity');
 
-  // helpers
+  // pancakes modal
+  const [pancakesOpen, setPancakesOpen] = useState(false);
+  const [qty, setQty] = useState(1);
+  const [topping, setTopping] = useState('Strawberry');
+  const [syrup, setSyrup] = useState('Maple');
+
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const pct = (v) => ((v - PRICE_MIN) * 100) / (PRICE_MAX - PRICE_MIN);
 
@@ -57,61 +83,25 @@ export default function ShopPage() {
         }
         if (sort === 'alpha-asc') return a.name.localeCompare(b.name);
         if (sort === 'alpha-desc') return b.name.localeCompare(a.name);
-        return 0; // popularity
+        return 0;
       });
   }, [minPrice, maxPrice, q, sort]);
 
   return (
     <div className="min-h-screen bg-[#f7f3f1] pt-20">
-      {/* Scoped slider CSS so thumbs align exactly with the rail */}
+      {/* slider styling so thumbs sit on the rail */}
       <style>{`
-        /* Make the track the same height as our blue rail and center the thumb on it */
-        input[type="range"] {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 100%;
-          background: transparent;
-        }
-        input[type="range"]::-webkit-slider-runnable-track {
-          height: 6px;                 /* matches rail height */
-          background: transparent;     /* rail is drawn separately */
-          border-radius: 9999px;
-        }
-        input[type="range"]::-moz-range-track {
-          height: 6px;
-          background: transparent;
-          border: none;
-          border-radius: 9999px;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 18px;
-          height: 18px;
-          border-radius: 9999px;
-          background: #2563eb;         /* blue-600 */
-          border: 2px solid #fff;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-          margin-top: -6px;            /* centers thumb on the 6px track (18/2 - 6/2) */
-          cursor: pointer;
-        }
-        input[type="range"]::-moz-range-thumb {
-          width: 18px;
-          height: 18px;
-          border-radius: 9999px;
-          background: #2563eb;
-          border: 2px solid #fff;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-          cursor: pointer;
-        }
+        input[type="range"]{ -webkit-appearance:none; appearance:none; width:100%; background:transparent; }
+        input[type="range"]::-webkit-slider-runnable-track { height:6px; background:transparent; border-radius:9999px; }
+        input[type="range"]::-moz-range-track { height:6px; background:transparent; border:none; border-radius:9999px; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:18px;height:18px;border-radius:9999px;background:#2563eb;border:2px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.15); margin-top:-6px; cursor:pointer; }
+        input[type="range"]::-moz-range-thumb { width:18px;height:18px;border-radius:9999px;background:#2563eb;border:2px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.15); cursor:pointer; }
       `}</style>
 
       <div className="max-w-7xl mx-auto px-4 py-8 flex gap-8">
         {/* Sidebar */}
         <aside className="w-full md:w-72 shrink-0">
-          <h3 className="text-lg font-semibold tracking-wide mb-4">
-            Browse by category
-          </h3>
+          <h3 className="text-lg font-semibold tracking-wide mb-4">Browse by category</h3>
 
           {/* Price */}
           <div className="bg-white rounded-xl p-4 border mb-4">
@@ -144,18 +134,13 @@ export default function ShopPage() {
               </div>
             </div>
 
-            {/* Dual range slider with centered rail */}
+            {/* Dual range slider */}
             <div className="mt-5 relative h-10">
-              {/* grey rail */}
               <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1.5 bg-gray-200 rounded-full" />
-
-              {/* selected segment */}
               <div
                 className="absolute top-1/2 -translate-y-1/2 h-1.5 bg-blue-600 rounded-full"
                 style={{ left: `${pct(minPrice)}%`, right: `${100 - pct(maxPrice)}%` }}
               />
-
-              {/* Left thumb */}
               <input
                 aria-label="Minimum price"
                 type="range"
@@ -166,8 +151,6 @@ export default function ShopPage() {
                 className="absolute inset-0 h-10 w-full"
                 style={{ zIndex: 20 }}
               />
-
-              {/* Right thumb */}
               <input
                 aria-label="Maximum price"
                 type="range"
@@ -187,19 +170,11 @@ export default function ShopPage() {
           <div className="bg-white rounded-xl p-4 border mb-4">
             <div className="font-semibold text-sm mb-2">How to get it</div>
             <label className="flex items-center gap-2 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                checked={delivery}
-                onChange={() => setDelivery(!delivery)}
-              />
+              <input type="checkbox" checked={delivery} onChange={() => setDelivery(!delivery)} />
               Local delivery
             </label>
             <label className="mt-2 flex items-center gap-2 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                checked={pickup}
-                onChange={() => setPickup(!pickup)}
-              />
+              <input type="checkbox" checked={pickup} onChange={() => setPickup(!pickup)} />
               Pickup
             </label>
           </div>
@@ -208,11 +183,7 @@ export default function ShopPage() {
           <div className="bg-white rounded-xl p-4 border">
             <div className="font-semibold text-sm mb-2">Availability</div>
             <label className="flex items-center gap-2 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                checked={inStock}
-                onChange={() => setInStock(!inStock)}
-              />
+              <input type="checkbox" checked={inStock} onChange={() => setInStock(!inStock)} />
               In stock
             </label>
           </div>
@@ -245,22 +216,137 @@ export default function ShopPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((p) => (
-              <Link
-                to={`/product/${p.id}`}
-                key={p.id}
-                className="bg-white rounded-2xl overflow-hidden border hover:shadow-md transition"
-              >
-                <img src={p.image} alt={p.name} className="w-full h-64 object-cover" />
-                <div className="p-4">
-                  <h3 className="font-medium text-gray-900">{p.name}</h3>
-                  <p className="text-gray-600 text-sm mt-1">{displayPrice(p)}</p>
+            {filtered.map((p) => {
+              const card = (
+                <div className="bg-white rounded-2xl overflow-hidden border hover:shadow-md transition">
+                  <img src={p.image} alt={p.name} className="w-full h-64 object-cover" />
+                  <div className="p-4">
+                    <h3 className="font-medium text-gray-900">{p.name}</h3>
+                    <p className="text-gray-600 text-sm mt-1">{displayPrice(p)}</p>
+                  </div>
                 </div>
-              </Link>
-            ))}
+              );
+
+              // SPECIAL CASE: 10 ct Mini Pancakes -> open modal instead of route
+              if (p.id === PANCAKES_ID) {
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setPancakesOpen(true)}
+                    className="text-left"
+                  >
+                    {card}
+                  </button>
+                );
+              }
+
+              // Default: go to dynamic product page
+              return (
+                <Link to={`/product/${p.id}`} key={p.id}>
+                  {card}
+                </Link>
+              );
+            })}
           </div>
         </main>
       </div>
+
+      {/* Pancakes Modal (prototype) */}
+      <Modal open={pancakesOpen} onClose={() => setPancakesOpen(false)}>
+        <div className="grid md:grid-cols-2">
+          <img
+            src="https://cdn.loveandlemons.com/wp-content/uploads/2025/01/pancake-recipe.jpg"
+            alt="10 ct Mini Pancakes"
+            className="w-full h-72 md:h-full object-cover"
+          />
+          <div className="p-6">
+            <div className="flex justify-between items-start">
+              <h2 className="text-2xl font-semibold">10 ct Mini Pancakes</h2>
+              <button
+                onClick={() => setPancakesOpen(false)}
+                className="text-gray-500 hover:text-black text-xl leading-none"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            <p className="text-gray-600 mt-2">
+              Freshly made bite-sized pancakes. Choose your topping and syrup!
+            </p>
+
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Topping</label>
+                <select
+                  value={topping}
+                  onChange={(e) => setTopping(e.target.value)}
+                  className="w-full border rounded-lg px-3 py-2"
+                >
+                  <option>Strawberry</option>
+                  <option>Banana</option>
+                  <option>Chocolate Chips</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Syrup</label>
+                <select
+                  value={syrup}
+                  onChange={(e) => setSyrup(e.target.value)}
+                  className="w-full border rounded-lg px-3 py-2"
+                >
+                  <option>Maple</option>
+                  <option>Caramel</option>
+                  <option>Chocolate</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Quantity</label>
+                <div className="inline-flex items-center border rounded-lg">
+                  <button
+                    type="button"
+                    className="px-3 py-2 disabled:opacity-40"
+                    disabled={qty === 1}
+                    onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  >
+                    −
+                  </button>
+                  <span className="px-4">{qty}</span>
+                  <button
+                    type="button"
+                    className="px-3 py-2"
+                    onClick={() => setQty((q) => q + 1)}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <div>
+                  <div className="text-sm text-gray-500">Price</div>
+                  <div className="text-lg font-semibold">$8.00</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    alert(
+                      `Added ${qty} x 10 ct Mini Pancakes (${topping}, ${syrup}) to cart.`
+                    );
+                    setPancakesOpen(false);
+                  }}
+                  className="px-5 py-3 bg-black text-white rounded-lg hover:bg-gray-800"
+                >
+                  Add to cart
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
