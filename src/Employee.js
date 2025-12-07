@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Calendar, Package, Menu, X, ArrowLeft, Clock, MapPin, Phone, Mail, User, DollarSign, CheckCircle, AlertCircle } from 'lucide-react';
 
 // Sample data
-const initialReservations = [
+export const initialReservations = [
   {
     id: 'RES001',
     customerName: 'Sarah Johnson',
@@ -95,7 +95,7 @@ const initialReservations = [
   }
 ];
 
-const initialOrders = [
+export const initialOrders = [
   {
     id: 'ORD001',
     customerName: 'Jessica Martinez',
@@ -379,7 +379,7 @@ function ReservationsPage({ onNavigate, reservations }) {
               {[...Array(daysInMonth)].map((_, i) => {
                 const day = i + 1;
                 const dateStr = formatDateForCalendar(day);
-                const reservations = getReservationsForDate(dateStr);
+                const dayReservations = getReservationsForDate(dateStr);
                 const isToday = dateStr === today.toISOString().split('T')[0];
                 
                 return (
@@ -387,13 +387,13 @@ function ReservationsPage({ onNavigate, reservations }) {
                     key={day}
                     className={`aspect-square border rounded-lg p-2 cursor-pointer transition ${
                       isToday ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-black'
-                    } ${reservations.length > 0 ? 'bg-pink-50' : ''}`}
-                    onClick={() => setSelectedDate(reservations.length > 0 ? dateStr : null)}
+                    } ${dayReservations.length > 0 ? 'bg-pink-50' : ''}`}
+                    onClick={() => setSelectedDate(dayReservations.length > 0 ? dateStr : null)}
                   >
                     <div className="font-semibold text-sm mb-1">{day}</div>
-                    {reservations.length > 0 && (
+                    {dayReservations.length > 0 && (
                       <div className="text-xs text-gray-600">
-                        {reservations.length} booking{reservations.length > 1 ? 's' : ''}
+                        {dayReservations.length} booking{dayReservations.length > 1 ? 's' : ''}
                       </div>
                     )}
                   </div>
@@ -1420,11 +1420,10 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
   );
 }
 
-export default function App() {
+// UPDATED default export to use shared reservations/orders from RootApp
+export default function EmployeeApp({ reservations, setReservations, orders, setOrders }) {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [selectedId, setSelectedId] = useState(null);
-  const [reservations, setReservations] = useState(initialReservations);
-  const [orders, setOrders] = useState(initialOrders);
 
   const handleNavigate = (page, id = null) => {
     setCurrentPage(page);
@@ -1455,10 +1454,10 @@ export default function App() {
         option: request.option
       };
 
-      // Add to orders
+      // Add to orders (shared)
       setOrders([...orders, newOrder]);
 
-      // Remove from requests
+      // Remove from requests (shared)
       setReservations(reservations.filter(r => r.id !== requestId));
     }
   };
@@ -1488,7 +1487,7 @@ export default function App() {
         createdAt: order.orderDate
       };
 
-      // Add to reservations
+      // Add to reservations (shared)
       setReservations([...reservations, newReservation]);
     }
   };
