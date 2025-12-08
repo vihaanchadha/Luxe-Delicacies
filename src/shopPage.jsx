@@ -22,7 +22,7 @@ function Modal({ open, onClose, children }) {
   );
 }
 
-export default function ShopPage() {
+export default function ShopPage({ onAddToCart }) {
   const PRICE_MIN = 0;
   const PRICE_MAX = 50;
 
@@ -127,6 +127,30 @@ export default function ShopPage() {
 
   const modalTotalPrice = modalBasePrice * qty;
 
+  // helper: actually send to cart (safe even if onAddToCart is not passed)
+  const addCurrentToCart = (extraNotes) => {
+    if (!activeProduct) return;
+
+    const payload = {
+      productId: activeProduct.id,
+      name: activeProduct.name,
+      image: activeProduct.image,
+      variantId: activeVariant?.id || null,
+      variantName: activeVariant?.name || null,
+      pricePerUnit: modalBasePrice,
+      quantity: qty,
+      notes: extraNotes || ''
+    };
+
+    if (onAddToCart) {
+      onAddToCart(payload);
+      alert('Added to cart!');
+    } else {
+      alert('Added to cart (demo only).');
+    }
+    closeProduct();
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f3f1] pt-20">
       {/* slider thumb styling + pointer-events so both thumbs work */}
@@ -136,7 +160,7 @@ export default function ShopPage() {
           appearance:none;
           width:100%;
           background:transparent;
-          pointer-events:none; /* allow only thumbs to capture events */
+          pointer-events:none;
         }
         input[type="range"]::-webkit-slider-runnable-track {
           height:6px;
@@ -160,7 +184,7 @@ export default function ShopPage() {
           box-shadow:0 1px 2px rgba(0,0,0,.15);
           margin-top:-6px;
           cursor:pointer;
-          pointer-events:auto; /* thumb is draggable */
+          pointer-events:auto;
         }
         input[type="range"]::-moz-range-thumb {
           width:18px;
@@ -444,12 +468,11 @@ export default function ShopPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => {
-                      alert(
-                        `Added ${qty} x ${activeProduct.name} (${topping}, ${syrup}) to cart.`
-                      );
-                      closeProduct();
-                    }}
+                    onClick={() =>
+                      addCurrentToCart(
+                        `Topping: ${topping}, Syrup: ${syrup}`
+                      )
+                    }
                     className="px-5 py-3 bg-black text-white rounded-lg hover:bg-gray-800"
                   >
                     Add to cart
@@ -472,6 +495,13 @@ export default function ShopPage() {
                   <h2 className="text-2xl font-semibold">
                     {activeProduct.name}
                   </h2>
+                  <button
+                    onClick={closeProduct}
+                    className="text-gray-500 hover:text-black text-xl leading-none"
+                    aria-label="Close"
+                  >
+                    ×
+                  </button>
                 </div>
 
                 {activeProduct.description && (
@@ -485,8 +515,7 @@ export default function ShopPage() {
                     activeProduct.variants.length > 0 && (
                       <div>
                         <label className="block text-sm font-medium mb-1">
-                          {activeProduct.variantLabel ||
-                            'Size / Option'}
+                          {activeProduct.variantLabel || 'Size / Option'}
                         </label>
                         <select
                           value={selectedVariantId || ''}
@@ -545,15 +574,7 @@ export default function ShopPage() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => {
-                        const variantText = activeVariant
-                          ? ` (${activeVariant.name})`
-                          : '';
-                        alert(
-                          `Added ${qty} x ${activeProduct.name}${variantText} to cart.`
-                        );
-                        closeProduct();
-                      }}
+                      onClick={() => addCurrentToCart('')}
                       className="px-5 py-3 bg-black text-white rounded-lg hover:bg-gray-800"
                     >
                       Add to cart

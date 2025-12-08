@@ -1,8 +1,25 @@
+// src/EmployeeApp.js
 import React, { useState } from 'react';
-import { Calendar, Package, Menu, X, ArrowLeft, Clock, MapPin, Phone, Mail, User, DollarSign, CheckCircle, AlertCircle } from 'lucide-react';
+import {
+  Calendar,
+  Package,
+  Menu,
+  X,
+  ArrowLeft,
+  Clock,
+  MapPin,
+  Phone,
+  Mail,
+  User,
+  DollarSign,
+  CheckCircle,
+  AlertCircle
+} from 'lucide-react';
 
-// Sample data
-export const initialReservations = [
+// ----------------- Seed data -----------------
+
+
+/*export const initialReservations = [
   {
     id: 'RES001',
     customerName: 'Sarah Johnson',
@@ -114,9 +131,7 @@ export const initialOrders = [
     id: 'ORD002',
     customerName: 'Robert Taylor',
     customerEmail: 'rtaylor@email.com',
-    items: [
-      { name: 'Gourmet Pancake Mix', quantity: 5, price: 15 }
-    ],
+    items: [{ name: 'Gourmet Pancake Mix', quantity: 5, price: 15 }],
     total: 75,
     orderDate: '2025-10-27',
     pickupDate: '2025-11-02',
@@ -124,7 +139,8 @@ export const initialOrders = [
     notes: ''
   }
 ];
-
+*/
+// ----------------- Navigation -----------------
 function Navigation({ onNavigate }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -132,9 +148,7 @@ function Navigation({ onNavigate }) {
     <nav className="fixed w-full bg-white shadow-sm z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          <button onClick={() => onNavigate('dashboard')} claa new pending order into that orders state
-          
-          BelowssName="flex items-center">
+          <button onClick={() => onNavigate('dashboard')} className="flex items-center">
             <div className="w-16 h-16 bg-gray-100 border border-gray-300 flex items-center justify-center">
               <div className="text-center">
                 <div className="text-2xl font-serif">LD</div>
@@ -142,23 +156,23 @@ function Navigation({ onNavigate }) {
               </div>
             </div>
           </button>
-          
+
           <div className="hidden md:flex space-x-8">
-            <button 
+            <button
               onClick={() => onNavigate('new-requests')}
               className="text-sm tracking-wide hover:text-gray-600 transition flex items-center gap-2"
             >
               <AlertCircle className="w-4 h-4" />
               NEW REQUESTS
             </button>
-            <button 
+            <button
               onClick={() => onNavigate('reservations')}
               className="text-sm tracking-wide hover:text-gray-600 transition flex items-center gap-2"
             >
               <Calendar className="w-4 h-4" />
               RESERVATIONS
             </button>
-            <button 
+            <button
               onClick={() => onNavigate('orders')}
               className="text-sm tracking-wide hover:text-gray-600 transition flex items-center gap-2"
             >
@@ -167,7 +181,7 @@ function Navigation({ onNavigate }) {
             </button>
           </div>
 
-          <button 
+          <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 hover:text-gray-600"
           >
@@ -179,20 +193,29 @@ function Navigation({ onNavigate }) {
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t">
           <div className="px-4 py-4 space-y-3">
-            <button 
-              onClick={() => { onNavigate('new-requests'); setMobileMenuOpen(false); }}
+            <button
+              onClick={() => {
+                onNavigate('new-requests');
+                setMobileMenuOpen(false);
+              }}
               className="block text-sm tracking-wide w-full text-left"
             >
               NEW REQUESTS
             </button>
-            <button 
-              onClick={() => { onNavigate('reservations'); setMobileMenuOpen(false); }}
+            <button
+              onClick={() => {
+                onNavigate('reservations');
+                setMobileMenuOpen(false);
+              }}
               className="block text-sm tracking-wide w-full text-left"
             >
               RESERVATIONS
             </button>
-            <button 
-              onClick={() => { onNavigate('orders'); setMobileMenuOpen(false); }}
+            <button
+              onClick={() => {
+                onNavigate('orders');
+                setMobileMenuOpen(false);
+              }}
               className="block text-sm tracking-wide w-full text-left"
             >
               ORDERS
@@ -204,11 +227,14 @@ function Navigation({ onNavigate }) {
   );
 }
 
+// ----------------- Dashboard -----------------
 function DashboardPage({ onNavigate, reservations, orders }) {
   const today = new Date().toISOString().split('T')[0];
-  const upcomingReservations = reservations.filter(r => r.date >= today && r.status === 'approved');
-  const pendingOrders = orders.filter(o => o.status === 'pending');
-  const pendingRequests = reservations.filter(r => r.status === 'pending_approval');
+  const upcomingReservations = reservations.filter(
+    (r) => r.date >= today && r.status === 'approved'
+  );
+  const pendingOrders = orders.filter((o) => o.status === 'pending');
+  const pendingRequests = reservations.filter((r) => r.status === 'pending_approval');
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
@@ -216,10 +242,11 @@ function DashboardPage({ onNavigate, reservations, orders }) {
         <h1 className="text-4xl font-serif mb-8">Employee Dashboard</h1>
 
         <div className="grid md:grid-cols-3 gap-8 mb-12">
+          {/* New Requests */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold">New Requests</h2>
-              <button 
+              <button
                 onClick={() => onNavigate('new-requests')}
                 className="text-sm text-gray-600 hover:text-black"
               >
@@ -227,18 +254,22 @@ function DashboardPage({ onNavigate, reservations, orders }) {
               </button>
             </div>
             <div className="space-y-4">
-              {pendingRequests.slice(0, 3).map(req => (
-                <div 
+              {pendingRequests.slice(0, 3).map((req) => (
+                <div
                   key={req.id}
                   onClick={() => onNavigate('request-detail', req.id)}
                   className="p-4 border border-yellow-200 bg-yellow-50 rounded-lg hover:border-yellow-400 cursor-pointer transition"
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-semibold">{req.customerName}</h3>
-                    <span className="text-xs px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full font-semibold">NEW</span>
+                    <span className="text-xs px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full font-semibold">
+                      NEW
+                    </span>
                   </div>
                   <p className="text-sm text-gray-600">{req.service}</p>
-                  <p className="text-sm text-gray-500">{req.date} at {req.time}</p>
+                  <p className="text-sm text-gray-500">
+                    {req.date} at {req.time}
+                  </p>
                 </div>
               ))}
               {pendingRequests.length === 0 && (
@@ -247,10 +278,11 @@ function DashboardPage({ onNavigate, reservations, orders }) {
             </div>
           </div>
 
+          {/* Pending Orders */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold">Pending Orders</h2>
-              <button 
+              <button
                 onClick={() => onNavigate('orders')}
                 className="text-sm text-gray-600 hover:text-black"
               >
@@ -258,8 +290,8 @@ function DashboardPage({ onNavigate, reservations, orders }) {
               </button>
             </div>
             <div className="space-y-4">
-              {pendingOrders.map(order => (
-                <div 
+              {pendingOrders.map((order) => (
+                <div
                   key={order.id}
                   onClick={() => onNavigate('order-detail', order.id)}
                   className="p-4 border border-gray-200 rounded-lg hover:border-black cursor-pointer transition"
@@ -275,10 +307,11 @@ function DashboardPage({ onNavigate, reservations, orders }) {
             </div>
           </div>
 
+          {/* Upcoming Reservations */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold">Upcoming Reservations</h2>
-              <button 
+              <button
                 onClick={() => onNavigate('reservations')}
                 className="text-sm text-gray-600 hover:text-black"
               >
@@ -286,8 +319,8 @@ function DashboardPage({ onNavigate, reservations, orders }) {
               </button>
             </div>
             <div className="space-y-4">
-              {upcomingReservations.slice(0, 3).map(res => (
-                <div 
+              {upcomingReservations.slice(0, 3).map((res) => (
+                <div
                   key={res.id}
                   onClick={() => onNavigate('reservation-detail', res.id)}
                   className="p-4 border border-gray-200 rounded-lg hover:border-black cursor-pointer transition"
@@ -308,26 +341,37 @@ function DashboardPage({ onNavigate, reservations, orders }) {
   );
 }
 
+// ----------------- Reservations list / calendar -----------------
 function ReservationsPage({ onNavigate, reservations }) {
   const [view, setView] = useState('calendar');
   const [selectedDate, setSelectedDate] = useState(null);
 
-  // Only show approved reservations in this view
-  const approvedReservations = reservations.filter(r => r.status === 'approved');
+  const approvedReservations = reservations.filter((r) => r.status === 'approved');
 
   const today = new Date();
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
-  
+
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
-  
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'];
 
-  const getReservationsForDate = (date) => {
-    return approvedReservations.filter(r => r.date === date);
-  };
+  const monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ];
+
+  const getReservationsForDate = (date) =>
+    approvedReservations.filter((r) => r.date === date);
 
   const formatDateForCalendar = (day) => {
     const date = new Date(currentYear, currentMonth, day);
@@ -343,7 +387,9 @@ function ReservationsPage({ onNavigate, reservations }) {
             <button
               onClick={() => setView('calendar')}
               className={`px-6 py-2 rounded-lg transition ${
-                view === 'calendar' ? 'bg-black text-white' : 'bg-white border border-gray-300'
+                view === 'calendar'
+                  ? 'bg-black text-white'
+                  : 'bg-white border border-gray-300'
               }`}
             >
               Calendar View
@@ -351,7 +397,9 @@ function ReservationsPage({ onNavigate, reservations }) {
             <button
               onClick={() => setView('list')}
               className={`px-6 py-2 rounded-lg transition ${
-                view === 'list' ? 'bg-black text-white' : 'bg-white border border-gray-300'
+                view === 'list'
+                  ? 'bg-black text-white'
+                  : 'bg-white border border-gray-300'
               }`}
             >
               List View
@@ -364,9 +412,9 @@ function ReservationsPage({ onNavigate, reservations }) {
             <h2 className="text-2xl font-semibold mb-6 text-center">
               {monthNames[currentMonth]} {currentYear}
             </h2>
-            
+
             <div className="grid grid-cols-7 gap-2 mb-2">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
                 <div key={day} className="text-center font-semibold text-gray-600 py-2">
                   {day}
                 </div>
@@ -375,27 +423,30 @@ function ReservationsPage({ onNavigate, reservations }) {
 
             <div className="grid grid-cols-7 gap-2">
               {[...Array(firstDayOfMonth)].map((_, i) => (
-                <div key={`empty-${i}`} className="aspect-square"></div>
+                <div key={`empty-${i}`} className="aspect-square" />
               ))}
-              
+
               {[...Array(daysInMonth)].map((_, i) => {
                 const day = i + 1;
                 const dateStr = formatDateForCalendar(day);
                 const dayReservations = getReservationsForDate(dateStr);
                 const isToday = dateStr === today.toISOString().split('T')[0];
-                
+
                 return (
                   <div
                     key={day}
                     className={`aspect-square border rounded-lg p-2 cursor-pointer transition ${
                       isToday ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-black'
                     } ${dayReservations.length > 0 ? 'bg-pink-50' : ''}`}
-                    onClick={() => setSelectedDate(dayReservations.length > 0 ? dateStr : null)}
+                    onClick={() =>
+                      setSelectedDate(dayReservations.length > 0 ? dateStr : null)
+                    }
                   >
                     <div className="font-semibold text-sm mb-1">{day}</div>
                     {dayReservations.length > 0 && (
                       <div className="text-xs text-gray-600">
-                        {dayReservations.length} booking{dayReservations.length > 1 ? 's' : ''}
+                        {dayReservations.length} booking
+                        {dayReservations.length > 1 ? 's' : ''}
                       </div>
                     )}
                   </div>
@@ -409,7 +460,7 @@ function ReservationsPage({ onNavigate, reservations }) {
                   Reservations for {selectedDate}
                 </h3>
                 <div className="space-y-4">
-                  {getReservationsForDate(selectedDate).map(res => (
+                  {getReservationsForDate(selectedDate).map((res) => (
                     <div
                       key={res.id}
                       onClick={() => onNavigate('reservation-detail', res.id)}
@@ -417,7 +468,9 @@ function ReservationsPage({ onNavigate, reservations }) {
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <h4 className="font-semibold text-lg">{res.customerName}</h4>
+                          <h4 className="font-semibold text-lg">
+                            {res.customerName}
+                          </h4>
                           <p className="text-gray-600">{res.service}</p>
                         </div>
                         <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
@@ -442,7 +495,7 @@ function ReservationsPage({ onNavigate, reservations }) {
           </div>
         ) : (
           <div className="space-y-4">
-            {approvedReservations.map(res => (
+            {approvedReservations.map((res) => (
               <div
                 key={res.id}
                 onClick={() => onNavigate('reservation-detail', res.id)}
@@ -450,8 +503,12 @@ function ReservationsPage({ onNavigate, reservations }) {
               >
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-semibold mb-1">{res.customerName}</h3>
-                    <p className="text-gray-600">{res.service} - {res.option}</p>
+                    <h3 className="text-xl font-semibold mb-1">
+                      {res.customerName}
+                    </h3>
+                    <p className="text-gray-600">
+                      {res.service} - {res.option}
+                    </p>
                   </div>
                   <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
                     APPROVED
@@ -480,8 +537,11 @@ function ReservationsPage({ onNavigate, reservations }) {
   );
 }
 
+// ----------------- New Requests -----------------
 function NewRequestsPage({ onNavigate, reservations }) {
-  const pendingRequests = reservations.filter(r => r.status === 'pending_approval');
+  const pendingRequests = reservations.filter(
+    (r) => r.status === 'pending_approval'
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
@@ -489,10 +549,14 @@ function NewRequestsPage({ onNavigate, reservations }) {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-serif mb-2">New Reservation Requests</h1>
-            <p className="text-gray-600">Review and approve new booking requests from customers</p>
+            <p className="text-gray-600">
+              Review and approve new booking requests from customers
+            </p>
           </div>
           <div className="text-right">
-            <p className="text-3xl font-bold text-yellow-600">{pendingRequests.length}</p>
+            <p className="text-3xl font-bold text-yellow-600">
+              {pendingRequests.length}
+            </p>
             <p className="text-sm text-gray-600">Pending Approval</p>
           </div>
         </div>
@@ -501,11 +565,13 @@ function NewRequestsPage({ onNavigate, reservations }) {
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-600" />
             <h2 className="text-2xl font-semibold mb-2">All caught up!</h2>
-            <p className="text-gray-600">No pending reservation requests at this time.</p>
+            <p className="text-gray-600">
+              No pending reservation requests at this time.
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {pendingRequests.map(request => (
+            {pendingRequests.map((request) => (
               <div
                 key={request.id}
                 onClick={() => onNavigate('request-detail', request.id)}
@@ -514,13 +580,19 @@ function NewRequestsPage({ onNavigate, reservations }) {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-semibold">{request.customerName}</h3>
+                      <h3 className="text-xl font-semibold">
+                        {request.customerName}
+                      </h3>
                       <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
                         AWAITING APPROVAL
                       </span>
                     </div>
-                    <p className="text-gray-600 mb-2">{request.service} - {request.option}</p>
-                    <p className="text-sm text-gray-500">Requested on {request.createdAt}</p>
+                    <p className="text-gray-600 mb-2">
+                      {request.service} - {request.option}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Requested on {request.createdAt}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-bold mb-1">${request.price}</p>
@@ -555,7 +627,7 @@ function NewRequestsPage({ onNavigate, reservations }) {
                 )}
 
                 <div className="mt-4 flex gap-3">
-                  <button 
+                  <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onNavigate('request-detail', request.id);
@@ -564,7 +636,7 @@ function NewRequestsPage({ onNavigate, reservations }) {
                   >
                     Review & Approve
                   </button>
-                  <button 
+                  <button
                     onClick={(e) => {
                       e.stopPropagation();
                       window.location.href = `mailto:${request.customerEmail}`;
@@ -583,23 +655,34 @@ function NewRequestsPage({ onNavigate, reservations }) {
   );
 }
 
-function RequestDetailPage({ requestId, onNavigate, reservations, orders, onApproveRequest }) {
+// ----------------- Request Detail -----------------
+function RequestDetailPage({
+  requestId,
+  onNavigate,
+  reservations,
+  orders,
+  onApproveRequest
+}) {
   const [showApprovalConfirm, setShowApprovalConfirm] = useState(false);
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [messages, setMessages] = useState([
-    { sender: 'customer', text: 'Hi! I submitted a reservation request. Looking forward to hearing from you!', time: '10:30 AM' }
+    {
+      sender: 'customer',
+      text: 'Hi! I submitted a reservation request. Looking forward to hearing from you!',
+      time: '10:30 AM'
+    }
   ]);
   const [newMessage, setNewMessage] = useState('');
-  
-  const request = reservations.find(r => r.id === requestId);
+
+  const request = reservations.find((r) => r.id === requestId);
 
   if (!request) {
     return (
       <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Request not found</h1>
-          <button 
+          <button
             onClick={() => onNavigate('new-requests')}
             className="px-6 py-2 bg-black text-white rounded-lg"
           >
@@ -612,22 +695,32 @@ function RequestDetailPage({ requestId, onNavigate, reservations, orders, onAppr
 
   const handleApprove = () => {
     onApproveRequest(request.id);
-    alert(`Reservation ${request.id} has been approved and moved to Pending Orders! Customer will be notified.`);
+    alert(
+      `Reservation ${request.id} has been approved and moved to Pending Orders! Customer will be notified.`
+    );
     onNavigate('orders');
   };
 
   const handleDecline = () => {
-    alert(`Reservation ${request.id} has been declined. Customer will be notified.`);
+    alert(
+      `Reservation ${request.id} has been declined. Customer will be notified that their request could not be accommodated.`
+    );
     onNavigate('new-requests');
   };
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
-      setMessages([...messages, { 
-        sender: 'employee', 
-        text: newMessage, 
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }]);
+      setMessages([
+        ...messages,
+        {
+          sender: 'employee',
+          text: newMessage,
+          time: new Date().toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        }
+      ]);
       setNewMessage('');
     }
   };
@@ -635,7 +728,7 @@ function RequestDetailPage({ requestId, onNavigate, reservations, orders, onAppr
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <button 
+        <button
           onClick={() => onNavigate('new-requests')}
           className="flex items-center gap-2 text-gray-600 hover:text-black mb-6"
         >
@@ -749,14 +842,14 @@ function RequestDetailPage({ requestId, onNavigate, reservations, orders, onAppr
               </div>
 
               <div className="border-t pt-6 flex gap-4">
-                <button 
+                <button
                   onClick={() => setShowApprovalConfirm(true)}
                   className="flex-1 py-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition text-lg flex items-center justify-center gap-2"
                 >
                   <CheckCircle className="w-5 h-5" />
                   Approve & Move to Orders
                 </button>
-                <button 
+                <button
                   onClick={() => setShowDeclineConfirm(true)}
                   className="px-8 py-4 border border-red-300 text-red-600 rounded-lg font-semibold hover:bg-red-50 transition text-lg"
                 >
@@ -766,6 +859,7 @@ function RequestDetailPage({ requestId, onNavigate, reservations, orders, onAppr
             </div>
           </div>
 
+          {/* Chat side panel */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
               <div className="flex justify-between items-center mb-4">
@@ -782,16 +876,27 @@ function RequestDetailPage({ requestId, onNavigate, reservations, orders, onAppr
                 <div>
                   <div className="border rounded-lg mb-4 h-96 overflow-y-auto p-4 bg-gray-50">
                     {messages.map((msg, idx) => (
-                      <div key={idx} className={`mb-4 ${msg.sender === 'employee' ? 'text-right' : 'text-left'}`}>
-                        <div className={`inline-block max-w-xs px-4 py-2 rounded-lg ${
-                          msg.sender === 'employee' 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-200 text-gray-800'
-                        }`}>
+                      <div
+                        key={idx}
+                        className={`mb-4 ${
+                          msg.sender === 'employee' ? 'text-right' : 'text-left'
+                        }`}
+                      >
+                        <div
+                          className={`inline-block max-w-xs px-4 py-2 rounded-lg ${
+                            msg.sender === 'employee'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-200 text-gray-800'
+                          }`}
+                        >
                           <p className="text-sm">{msg.text}</p>
-                          <p className={`text-xs mt-1 ${
-                            msg.sender === 'employee' ? 'text-blue-100' : 'text-gray-500'
-                          }`}>
+                          <p
+                            className={`text-xs mt-1 ${
+                              msg.sender === 'employee'
+                                ? 'text-blue-100'
+                                : 'text-gray-500'
+                            }`}
+                          >
                             {msg.time}
                           </p>
                         </div>
@@ -829,12 +934,14 @@ function RequestDetailPage({ requestId, onNavigate, reservations, orders, onAppr
           </div>
         </div>
 
+        {/* Approve / decline dialogs */}
         {showApprovalConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
               <h3 className="text-xl font-bold mb-4">Approve Reservation?</h3>
               <p className="text-gray-600 mb-6">
-                This will approve the reservation and move it to Pending Orders. The customer will be notified via SMS/email.
+                This will approve the reservation and move it to Pending Orders. The
+                customer will be notified via SMS/email.
               </p>
               <div className="flex gap-3">
                 <button
@@ -859,7 +966,8 @@ function RequestDetailPage({ requestId, onNavigate, reservations, orders, onAppr
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
               <h3 className="text-xl font-bold mb-4">Decline Reservation?</h3>
               <p className="text-gray-600 mb-6">
-                This will decline the reservation request. The customer will be notified that their request could not be accommodated.
+                This will decline the reservation request. The customer will be notified
+                that their request could not be accommodated.
               </p>
               <div className="flex gap-3">
                 <button
@@ -883,15 +991,16 @@ function RequestDetailPage({ requestId, onNavigate, reservations, orders, onAppr
   );
 }
 
+// ----------------- Reservation Detail -----------------
 function ReservationDetailPage({ reservationId, onNavigate, reservations }) {
-  const reservation = reservations.find(r => r.id === reservationId);
+  const reservation = reservations.find((r) => r.id === reservationId);
 
   if (!reservation) {
     return (
       <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Reservation not found</h1>
-          <button 
+          <button
             onClick={() => onNavigate('reservations')}
             className="px-6 py-2 bg-black text-white rounded-lg"
           >
@@ -905,7 +1014,7 @@ function ReservationDetailPage({ reservationId, onNavigate, reservations }) {
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
       <div className="max-w-4xl mx-auto px-4 py-12">
-        <button 
+        <button
           onClick={() => onNavigate('reservations')}
           className="flex items-center gap-2 text-gray-600 hover:text-black mb-6"
         >
@@ -916,12 +1025,16 @@ function ReservationDetailPage({ reservationId, onNavigate, reservations }) {
         <div className="bg-white rounded-lg shadow-sm p-8">
           <div className="flex justify-between items-start mb-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Reservation #{reservation.id}</h1>
-              <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${
-                reservation.status === 'approved' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-yellow-100 text-yellow-800'
-              }`}>
+              <h1 className="text-3xl font-bold mb-2">
+                Reservation #{reservation.id}
+              </h1>
+              <span
+                className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${
+                  reservation.status === 'approved'
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-yellow-100 text-yellow-800'
+                }`}
+              >
                 {reservation.status === 'approved' ? 'APPROVED' : 'PENDING APPROVAL'}
               </span>
             </div>
@@ -939,16 +1052,25 @@ function ReservationDetailPage({ reservationId, onNavigate, reservations }) {
                   Customer Information
                 </h2>
                 <div className="space-y-2 text-gray-700">
-                  <p><span className="font-semibold">Name:</span> {reservation.customerName}</p>
+                  <p>
+                    <span className="font-semibold">Name:</span>{' '}
+                    {reservation.customerName}
+                  </p>
                   <p className="flex items-center gap-2">
                     <Mail className="w-4 h-4" />
-                    <a href={`mailto:${reservation.customerEmail}`} className="hover:text-black">
+                    <a
+                      href={`mailto:${reservation.customerEmail}`}
+                      className="hover:text-black"
+                    >
                       {reservation.customerEmail}
                     </a>
                   </p>
                   <p className="flex items-center gap-2">
                     <Phone className="w-4 h-4" />
-                    <a href={`tel:${reservation.customerPhone}`} className="hover:text-black">
+                    <a
+                      href={`tel:${reservation.customerPhone}`}
+                      className="hover:text-black"
+                    >
                       {reservation.customerPhone}
                     </a>
                   </p>
@@ -961,8 +1083,12 @@ function ReservationDetailPage({ reservationId, onNavigate, reservations }) {
                   Event Details
                 </h2>
                 <div className="space-y-2 text-gray-700">
-                  <p><span className="font-semibold">Date:</span> {reservation.date}</p>
-                  <p><span className="font-semibold">Time:</span> {reservation.time}</p>
+                  <p>
+                    <span className="font-semibold">Date:</span> {reservation.date}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Time:</span> {reservation.time}
+                  </p>
                   <p className="flex items-start gap-2">
                     <MapPin className="w-4 h-4 mt-1 flex-shrink-0" />
                     <span>{reservation.location}</span>
@@ -975,8 +1101,14 @@ function ReservationDetailPage({ reservationId, onNavigate, reservations }) {
               <div>
                 <h2 className="text-lg font-semibold mb-3">Service Information</h2>
                 <div className="space-y-2 text-gray-700">
-                  <p><span className="font-semibold">Service:</span> {reservation.service}</p>
-                  <p><span className="font-semibold">Option:</span> {reservation.option}</p>
+                  <p>
+                    <span className="font-semibold">Service:</span>{' '}
+                    {reservation.service}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Option:</span>{' '}
+                    {reservation.option}
+                  </p>
                   <p className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4" />
                     <span className="text-xl font-bold">${reservation.price}</span>
@@ -1012,12 +1144,14 @@ function ReservationDetailPage({ reservationId, onNavigate, reservations }) {
   );
 }
 
+// ----------------- Orders list -----------------
 function OrdersPage({ onNavigate, orders }) {
   const [filterStatus, setFilterStatus] = useState('all');
 
-  const filteredOrders = filterStatus === 'all' 
-    ? orders 
-    : orders.filter(o => o.status === filterStatus);
+  const filteredOrders =
+    filterStatus === 'all'
+      ? orders
+      : orders.filter((o) => o.status === filterStatus);
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
@@ -1028,7 +1162,9 @@ function OrdersPage({ onNavigate, orders }) {
             <button
               onClick={() => setFilterStatus('all')}
               className={`px-4 py-2 rounded-lg transition ${
-                filterStatus === 'all' ? 'bg-black text-white' : 'bg-white border border-gray-300'
+                filterStatus === 'all'
+                  ? 'bg-black text-white'
+                  : 'bg-white border border-gray-300'
               }`}
             >
               All
@@ -1036,7 +1172,9 @@ function OrdersPage({ onNavigate, orders }) {
             <button
               onClick={() => setFilterStatus('pending')}
               className={`px-4 py-2 rounded-lg transition ${
-                filterStatus === 'pending' ? 'bg-black text-white' : 'bg-white border border-gray-300'
+                filterStatus === 'pending'
+                  ? 'bg-black text-white'
+                  : 'bg-white border border-gray-300'
               }`}
             >
               Pending
@@ -1044,7 +1182,9 @@ function OrdersPage({ onNavigate, orders }) {
             <button
               onClick={() => setFilterStatus('ready')}
               className={`px-4 py-2 rounded-lg transition ${
-                filterStatus === 'ready' ? 'bg-black text-white' : 'bg-white border border-gray-300'
+                filterStatus === 'ready'
+                  ? 'bg-black text-white'
+                  : 'bg-white border border-gray-300'
               }`}
             >
               Ready
@@ -1053,7 +1193,7 @@ function OrdersPage({ onNavigate, orders }) {
         </div>
 
         <div className="space-y-4">
-          {filteredOrders.map(order => (
+          {filteredOrders.map((order) => (
             <div
               key={order.id}
               onClick={() => onNavigate('order-detail', order.id)}
@@ -1061,16 +1201,20 @@ function OrdersPage({ onNavigate, orders }) {
             >
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-xl font-semibold mb-1">Order #{order.id}</h3>
+                  <h3 className="text-xl font-semibold mb-1">
+                    Order #{order.id}
+                  </h3>
                   <p className="text-gray-600">{order.customerName}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-bold mb-1">${order.total}</p>
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                    order.status === 'ready' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                      order.status === 'ready'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}
+                  >
                     {order.status.toUpperCase()}
                   </span>
                 </div>
@@ -1087,14 +1231,20 @@ function OrdersPage({ onNavigate, orders }) {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-800 mb-1">Status</p>
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
-                    order.status === 'ready' 
-                      ? 'bg-green-100 text-green-800'
+                  <span
+                    className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                      order.status === 'ready'
+                        ? 'bg-green-100 text-green-800'
+                        : order.status === 'confirmed'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}
+                  >
+                    {order.status === 'pending'
+                      ? 'EDITING'
                       : order.status === 'confirmed'
-                      ? 'bg-blue-100 text-blue-800' 
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {order.status === 'pending' ? 'EDITING' : order.status === 'confirmed' ? 'PREPARING' : 'READY'}
+                      ? 'PREPARING'
+                      : 'READY'}
                   </span>
                 </div>
               </div>
@@ -1117,22 +1267,32 @@ function OrdersPage({ onNavigate, orders }) {
   );
 }
 
-function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onConfirmOrder }) {
+// ----------------- Order Detail -----------------
+function OrderDetailPage({
+  orderId,
+  onNavigate,
+  orders,
+  onUpdateOrderStatus,
+  onConfirmOrder
+}) {
   const [showChat, setShowChat] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
   const [messages, setMessages] = useState([
-    { sender: 'customer', text: 'Hi! Just checking on my order status.', time: '10:30 AM' }
+    {
+      sender: 'customer',
+      text: 'Hi! Just checking on my order status.',
+      time: '10:30 AM'
+    }
   ]);
   const [newMessage, setNewMessage] = useState('');
-  
-  const order = orders.find(o => o.id === orderId);
+
+  const order = orders.find((o) => o.id === orderId);
 
   if (!order) {
     return (
       <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Order not found</h1>
-          <button 
+          <button
             onClick={() => onNavigate('orders')}
             className="px-6 py-2 bg-black text-white rounded-lg"
           >
@@ -1144,12 +1304,8 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
   }
 
   const handleConfirmOrder = () => {
-    setShowConfetti(true);
-    setTimeout(() => setShowConfetti(false), 3000);
     onConfirmOrder(orderId);
-    setTimeout(() => {
-      alert('Order confirmed! Moved to Upcoming Reservations and now in preparation phase.');
-    }, 500);
+    alert('Order confirmed! Moved to Upcoming Reservations and now in preparation phase.');
   };
 
   const handleMarkReady = () => {
@@ -1159,11 +1315,17 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
-      setMessages([...messages, { 
-        sender: 'employee', 
-        text: newMessage, 
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }]);
+      setMessages([
+        ...messages,
+        {
+          sender: 'employee',
+          text: newMessage,
+          time: new Date().toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        }
+      ]);
       setNewMessage('');
     }
   };
@@ -1171,7 +1333,7 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <button 
+        <button
           onClick={() => onNavigate('orders')}
           className="flex items-center gap-2 text-gray-600 hover:text-black mb-6"
         >
@@ -1184,15 +1346,23 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
             <div className="bg-white rounded-lg shadow-sm p-8">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h1 className="text-3xl font-bold mb-2">Order #{order.id}</h1>
-                  <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${
-                    order.status === 'ready' 
-                      ? 'bg-green-100 text-green-800'
+                  <h1 className="text-3xl font-bold mb-2">
+                    Order #{order.id}
+                  </h1>
+                  <span
+                    className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${
+                      order.status === 'ready'
+                        ? 'bg-green-100 text-green-800'
+                        : order.status === 'confirmed'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}
+                  >
+                    {order.status === 'pending'
+                      ? 'EDITING ORDER'
                       : order.status === 'confirmed'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {order.status === 'pending' ? 'EDITING ORDER' : order.status === 'confirmed' ? 'IN PREPARATION' : 'READY FOR PICKUP'}
+                      ? 'IN PREPARATION'
+                      : 'READY FOR PICKUP'}
                   </span>
                 </div>
                 <div className="text-right">
@@ -1209,7 +1379,10 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
                       Customer Information
                     </h2>
                     <div className="space-y-2 text-gray-700">
-                      <p><span className="font-semibold">Name:</span> {order.customerName}</p>
+                      <p>
+                        <span className="font-semibold">Name:</span>{' '}
+                        {order.customerName}
+                      </p>
                       <p className="flex items-center gap-2">
                         <Mail className="w-4 h-4" />
                         {order.customerEmail}
@@ -1227,7 +1400,9 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
                         <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
                         <div>
                           <p className="font-semibold">Order Placed</p>
-                          <p className="text-sm text-gray-600">{order.orderDate}</p>
+                          <p className="text-sm text-gray-600">
+                            {order.orderDate}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
@@ -1239,7 +1414,9 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
                         <div>
                           <p className="font-semibold">Editing Order</p>
                           <p className="text-sm text-gray-600">
-                            {order.status === 'pending' ? 'Awaiting confirmation' : 'Order confirmed'}
+                            {order.status === 'pending'
+                              ? 'Awaiting confirmation'
+                              : 'Order confirmed'}
                           </p>
                         </div>
                       </div>
@@ -1252,7 +1429,11 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
                         <div>
                           <p className="font-semibold">In Preparation</p>
                           <p className="text-sm text-gray-600">
-                            {order.status === 'ready' ? 'Completed' : order.status === 'confirmed' ? 'In progress' : 'Not started'}
+                            {order.status === 'ready'
+                              ? 'Completed'
+                              : order.status === 'confirmed'
+                              ? 'In progress'
+                              : 'Not started'}
                           </p>
                         </div>
                       </div>
@@ -1264,7 +1445,9 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
                         )}
                         <div>
                           <p className="font-semibold">
-                            {order.status === 'ready' ? 'Ready for Pickup' : 'Awaiting Completion'}
+                            {order.status === 'ready'
+                              ? 'Ready for Pickup'
+                              : 'Awaiting Completion'}
                           </p>
                           <p className="text-sm text-gray-600">
                             Pickup scheduled: {order.pickupDate}
@@ -1276,6 +1459,7 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
                   </div>
                 </div>
 
+                {/* Order items */}
                 <div className="space-y-6">
                   <div>
                     <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
@@ -1284,12 +1468,19 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
                     </h2>
                     <div className="space-y-3">
                       {order.items.map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-start bg-gray-50 p-3 rounded-lg">
+                        <div
+                          key={idx}
+                          className="flex justify-between items-start bg-gray-50 p-3 rounded-lg"
+                        >
                           <div className="flex-1">
                             <p className="font-semibold">{item.name}</p>
-                            <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                            <p className="text-sm text-gray-600">
+                              Quantity: {item.quantity}
+                            </p>
                           </div>
-                          <p className="font-semibold">${item.price * item.quantity}</p>
+                          <p className="font-semibold">
+                            ${item.price * item.quantity}
+                          </p>
                         </div>
                       ))}
                       <div className="border-t pt-3 flex justify-between items-center">
@@ -1322,7 +1513,7 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
 
               <div className="border-t pt-6 flex gap-4">
                 {order.status === 'pending' && (
-                  <button 
+                  <button
                     onClick={handleConfirmOrder}
                     className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
                   >
@@ -1330,7 +1521,7 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
                   </button>
                 )}
                 {order.status === 'confirmed' && (
-                  <button 
+                  <button
                     onClick={handleMarkReady}
                     className="flex-1 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
                   >
@@ -1342,7 +1533,7 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
                     Mark as Picked Up
                   </button>
                 )}
-                <button 
+                <button
                   onClick={() => setShowChat(!showChat)}
                   className="flex-1 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition"
                 >
@@ -1355,6 +1546,7 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
             </div>
           </div>
 
+          {/* Chat side panel */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
               <div className="flex justify-between items-center mb-4">
@@ -1371,16 +1563,27 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
                 <div>
                   <div className="border rounded-lg mb-4 h-96 overflow-y-auto p-4 bg-gray-50">
                     {messages.map((msg, idx) => (
-                      <div key={idx} className={`mb-4 ${msg.sender === 'employee' ? 'text-right' : 'text-left'}`}>
-                        <div className={`inline-block max-w-xs px-4 py-2 rounded-lg ${
-                          msg.sender === 'employee' 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-200 text-gray-800'
-                        }`}>
+                      <div
+                        key={idx}
+                        className={`mb-4 ${
+                          msg.sender === 'employee' ? 'text-right' : 'text-left'
+                        }`}
+                      >
+                        <div
+                          className={`inline-block max-w-xs px-4 py-2 rounded-lg ${
+                            msg.sender === 'employee'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-200 text-gray-800'
+                          }`}
+                        >
                           <p className="text-sm">{msg.text}</p>
-                          <p className={`text-xs mt-1 ${
-                            msg.sender === 'employee' ? 'text-blue-100' : 'text-gray-500'
-                          }`}>
+                          <p
+                            className={`text-xs mt-1 ${
+                              msg.sender === 'employee'
+                                ? 'text-blue-100'
+                                : 'text-gray-500'
+                            }`}
+                          >
                             {msg.time}
                           </p>
                         </div>
@@ -1422,7 +1625,13 @@ function OrderDetailPage({ orderId, onNavigate, orders, onUpdateOrderStatus, onC
   );
 }
 
-// UPDATED default export to use shared reservations/orders from RootApp
+// ----------------- MAIN EMPLOYEE APP WRAPPER -----------------
+
+
+
+
+
+
 export default function EmployeeApp({
   reservations = [],
   setReservations = () => {},

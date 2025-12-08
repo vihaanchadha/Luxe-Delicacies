@@ -1,8 +1,29 @@
+// src/App.js
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams } from 'react-router-dom';
-import { ShoppingCart, Search, Menu, X, Instagram, Facebook, Mail, ArrowLeft, Phone, Clock } from 'lucide-react';
-import ShopPage from './shopPage'; // <-- make sure this path matches your file name (shopPage.jsx)
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+  useParams,
+  useLocation
+} from 'react-router-dom';
+import {
+  ShoppingCart,
+  Search,
+  Menu,
+  X,
+  Instagram,
+  Facebook,
+  Mail,
+  ArrowLeft,
+  Phone,
+  Clock
+} from 'lucide-react';
+import ShopPage from './shopPage'; // shopPage.jsx
 
+// ----------------- Shared services data -----------------
 const services = [
   {
     id: 'white-bounce-house',
@@ -70,6 +91,7 @@ const services = [
   }
 ];
 
+// ----------------- Info drawer -----------------
 function InfoDrawer({ isOpen, onClose }) {
   const navigate = useNavigate();
 
@@ -82,14 +104,14 @@ function InfoDrawer({ isOpen, onClose }) {
 
   return (
     <>
-      <div 
+      <div
         className="fixed inset-0 bg-black bg-opacity-50 z-50"
         onClick={onClose}
       ></div>
-      
+
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 shadow-2xl overflow-y-auto">
         <div className="p-6">
-          <button 
+          <button
             onClick={onClose}
             className="mb-8 p-3 bg-gray-100 rounded-lg hover:bg-gray-200"
           >
@@ -107,9 +129,14 @@ function InfoDrawer({ isOpen, onClose }) {
             <div className="pb-6 border-b flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold mb-2">Phone</h2>
-                <a href="tel:7654761558" className="text-gray-600 hover:text-black">(765) 476-1558</a>
+                <a href="tel:7654761558" className="text-gray-600 hover:text-black">
+                  (765) 476-1558
+                </a>
               </div>
-              <a href="tel:7654761558" className="p-3 bg-gray-100 rounded-full hover:bg-gray-200">
+              <a
+                href="tel:7654761558"
+                className="p-3 bg-gray-100 rounded-full hover:bg-gray-200"
+              >
                 <Phone className="w-6 h-6" />
               </a>
             </div>
@@ -127,17 +154,17 @@ function InfoDrawer({ isOpen, onClose }) {
             <div className="pb-6 border-b">
               <h2 className="text-xl font-semibold mb-4">Follow</h2>
               <div className="flex gap-4">
-                <a 
-                  href="https://www.instagram.com/LuxeDelicacies" 
-                  target="_blank" 
+                <a
+                  href="https://www.instagram.com/LuxeDelicacies"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="p-3 bg-gray-100 rounded-full hover:bg-gray-200"
                 >
                   <Instagram className="w-6 h-6" />
                 </a>
-                <a 
-                  href="https://www.facebook.com/LuxeDelicacies" 
-                  target="_blank" 
+                <a
+                  href="https://www.facebook.com/LuxeDelicacies"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="p-3 bg-gray-100 rounded-full hover:bg-gray-200"
                 >
@@ -151,13 +178,16 @@ function InfoDrawer({ isOpen, onClose }) {
                 <h2 className="text-xl font-semibold mb-2">Text us</h2>
                 <p className="text-gray-600">We'll reply as soon as we can</p>
               </div>
-              <a href="sms:7654761558" className="p-3 bg-gray-100 rounded-full hover:bg-gray-200">
+              <a
+                href="sms:7654761558"
+                className="p-3 bg-gray-100 rounded-full hover:bg-gray-200"
+              >
                 <Mail className="w-6 h-6" />
               </a>
             </div>
           </div>
 
-          <button 
+          <button
             onClick={handleSignInClick}
             className="w-full mt-8 py-4 bg-black text-white rounded-lg font-semibold hover:bg-gray-800"
           >
@@ -169,16 +199,21 @@ function InfoDrawer({ isOpen, onClose }) {
   );
 }
 
-function Navigation() {
+// ----------------- Navigation (shows cart count) -----------------
+function Navigation({ cartCount = 0 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [infoDrawerOpen, setInfoDrawerOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isEmployeeView = location.pathname.startsWith('/employee');
 
   return (
     <>
-      <nav className="fixed w-full bg-white shadow-sm z-40">
+      <nav className="fixed top-10 w-full bg-white shadow-sm z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
+            {/* Logo */}
             <Link to="/" className="flex items-center">
               <div className="w-16 h-16 bg-gray-100 border border-gray-300 flex items-center justify-center">
                 <div className="text-center">
@@ -187,52 +222,85 @@ function Navigation() {
                 </div>
               </div>
             </Link>
-            
+
+            {/* Center links (desktop) */}
             <div className="hidden md:flex space-x-8">
-              {/* CHANGED: anchor -> Link to /shop */}
-              <Link to="/shop" className="text-sm tracking-wide hover:text-gray-600 transition">
+              <Link
+                to="/shop"
+                className="text-sm tracking-wide hover:text-gray-600 transition"
+              >
                 PREPACKAGED TREATS/PICKUP & ...
               </Link>
-              <Link to="/services" className="text-sm tracking-wide hover:text-gray-600 transition">
+              <Link
+                to="/services"
+                className="text-sm tracking-wide hover:text-gray-600 transition"
+              >
                 TREAT SERVICES AND PARTY ...
               </Link>
             </div>
 
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => navigate('/services')}
-                className="hidden md:block px-6 py-2 border border-black text-sm tracking-wide hover:bg-black hover:text-white transition"
+            {/* Right side: search, cart, mobile menu */}
+            <div className="flex items-center gap-3">
+              {/* (optional) info/search button */}
+              <button
+                onClick={() => setInfoDrawerOpen(true)}
+                className="hidden md:inline-flex p-2 rounded-full hover:bg-gray-100"
               >
-                Book Now
-              </button>
-              <button className="p-2 hover:text-gray-600">
                 <Search className="w-5 h-5" />
               </button>
-              <button className="p-2 hover:text-gray-600">
-                <ShoppingCart className="w-5 h-5" />
-              </button>
-              <button 
-                onClick={() => setInfoDrawerOpen(true)}
-                className="p-2 hover:text-gray-600"
+
+              {/* Cart button with badge */}
+              <button
+                onClick={() => navigate('/cart')}
+                className="relative p-2 rounded-full hover:bg-gray-100"
+                aria-label="View cart"
               >
-                <Menu className="w-6 h-6" />
+                <ShoppingCart className="w-5 h-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 min-w-[1.25rem] px-1 rounded-full bg-black text-white text-[10px] flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Mobile menu toggle */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 hover:text-gray-600"
+              >
+                {mobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
               </button>
             </div>
           </div>
         </div>
 
+        {/* Mobile dropdown menu */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-white border-t">
             <div className="px-4 py-4 space-y-3">
-              {/* CHANGED: anchor -> Link to /shop */}
-              <Link to="/shop" className="block text-sm tracking-wide" onClick={() => setMobileMenuOpen(false)}>
+              <Link
+                to="/shop"
+                className="block text-sm tracking-wide"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 PREPACKAGED TREATS/PICKUP
               </Link>
-              <Link to="/services" className="block text-sm tracking-wide" onClick={() => setMobileMenuOpen(false)}>
+              <Link
+                to="/services"
+                className="block text-sm tracking-wide"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 TREAT SERVICES AND PARTY
               </Link>
-              <button 
-                onClick={() => { setMobileMenuOpen(false); navigate('/services'); }}
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  navigate('/services');
+                }}
                 className="w-full px-6 py-2 border border-black text-sm tracking-wide"
               >
                 Book Now
@@ -242,11 +310,16 @@ function Navigation() {
         )}
       </nav>
 
-      <InfoDrawer isOpen={infoDrawerOpen} onClose={() => setInfoDrawerOpen(false)} />
+      <InfoDrawer
+        isOpen={infoDrawerOpen}
+        onClose={() => setInfoDrawerOpen(false)}
+      />
     </>
   );
 }
 
+
+// ----------------- Login, Home, Services, ServiceDetail -----------------
 function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -263,7 +336,7 @@ function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        <button 
+        <button
           onClick={() => navigate('/')}
           className="flex items-center gap-2 text-gray-600 hover:text-black mb-6"
         >
@@ -278,34 +351,19 @@ function LoginPage() {
               <div className="text-xs tracking-wider">LUXE</div>
             </div>
           </div>
-          <h1 className="text-3xl font-bold mb-2">{isSignUp ? 'Create Account' : 'Sign In'}</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            {isSignUp ? 'Create Account' : 'Sign In'}
+          </h1>
           <p className="text-gray-600">Welcome to Luxe Delicacies</p>
         </div>
 
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setIsSignUp(false)}
-            className={`flex-1 py-3 rounded-lg font-semibold transition ${
-              !isSignUp ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            Sign In
-          </button>
-          <button
-            onClick={() => setIsSignUp(true)}
-            className={`flex-1 py-3 rounded-lg font-semibold transition ${
-              isSignUp ? 'bg-black text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            Sign Up
-          </button>
-        </div>
-
-        <div onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             {isSignUp && (
               <div>
-                <label className="block text-sm font-semibold mb-2">Full Name</label>
+                <label className="block text-sm font-semibold mb-2">
+                  Full Name
+                </label>
                 <input
                   type="text"
                   value={name}
@@ -330,7 +388,9 @@ function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-2">Password</label>
+              <label className="block text-sm font-semibold mb-2">
+                Password
+              </label>
               <input
                 type="password"
                 value={password}
@@ -343,33 +403,42 @@ function LoginPage() {
 
             {!isSignUp && (
               <div className="text-right">
-                <button type="button" className="text-sm text-gray-600 hover:text-black">
+                <button
+                  type="button"
+                  className="text-sm text-gray-600 hover:text-black"
+                >
                   Forgot password?
                 </button>
               </div>
             )}
 
             <button
-              onClick={handleSubmit}
+              type="submit"
               className="w-full py-4 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition"
             >
               {isSignUp ? 'Create Account' : 'Sign In'}
             </button>
           </div>
-        </div>
+        </form>
 
         <div className="mt-6 text-center text-sm text-gray-600">
           {isSignUp ? (
             <p>
               Already have an account?{' '}
-              <button onClick={() => setIsSignUp(false)} className="text-black font-semibold hover:underline">
+              <button
+                onClick={() => setIsSignUp(false)}
+                className="text-black font-semibold hover:underline"
+              >
                 Sign in
               </button>
             </p>
           ) : (
             <p>
               Don't have an account?{' '}
-              <button onClick={() => setIsSignUp(true)} className="text-black font-semibold hover:underline">
+              <button
+                onClick={() => setIsSignUp(true)}
+                className="text-black font-semibold hover:underline"
+              >
                 Sign up
               </button>
             </p>
@@ -386,17 +455,24 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       <section className="pt-20 relative h-screen">
-        <div className="absolute inset-0 bg-cover bg-center" style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url("https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=1600")',
-          backgroundBlendMode: 'overlay'
-        }}>
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)), url("https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=1600")',
+            backgroundBlendMode: 'overlay'
+          }}
+        >
           <div className="h-full flex items-center justify-center">
             <div className="text-center max-w-3xl px-4">
-              <h1 className="text-5xl md:text-7xl font-serif mb-6">Modern Cart Catering</h1>
+              <h1 className="text-5xl md:text-7xl font-serif mb-6">
+                Modern Cart Catering
+              </h1>
               <p className="text-lg md:text-xl mb-8 leading-relaxed">
-                Elevate your next event with our line of mobile carts ready to deliver a customized luxurious experience
+                Elevate your next event with our line of mobile carts ready to
+                deliver a customized luxurious experience
               </p>
-              <button 
+              <button
                 onClick={() => navigate('/services')}
                 className="px-8 py-3 bg-pink-100 text-black text-sm tracking-wide hover:bg-pink-200 transition"
               >
@@ -411,9 +487,14 @@ function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-4xl md:text-5xl font-serif mb-6">Our Services</h2>
+              <h2 className="text-4xl md:text-5xl font-serif mb-6">
+                Our Services
+              </h2>
               <p className="text-gray-700 mb-6 leading-relaxed">
-                We offer a wide range of treats and drinks for your event needs. Our professional attendants will get to know you and your style, and make sure your guests leave talking about how unique and amazing your party was! We offer:
+                We offer a wide range of treats and drinks for your event
+                needs. Our professional attendants will get to know you and your
+                style, and make sure your guests leave talking about how unique
+                and amazing your party was! We offer:
               </p>
               <ul className="space-y-2 text-gray-700 mb-8">
                 <li>• Live Spun Cotton Candy</li>
@@ -428,16 +509,20 @@ function HomePage() {
                 <li>• Flower/Shimmer Walls</li>
                 <li>• Ice Cream</li>
               </ul>
-              <button 
+              <button
                 onClick={() => navigate('/services')}
                 className="px-8 py-3 bg-pink-100 text-black text-sm tracking-wide hover:bg-pink-200 transition"
               >
                 Event Services/Book Now
               </button>
             </div>
-            <div className="h-96 bg-cover bg-center rounded-lg" style={{
-              backgroundImage: 'url("https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800")'
-            }}></div>
+            <div
+              className="h-96 bg-cover bg-center rounded-lg"
+              style={{
+                backgroundImage:
+                  'url("https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800")'
+              }}
+            ></div>
           </div>
         </div>
       </section>
@@ -445,13 +530,20 @@ function HomePage() {
       <section className="py-20 px-4 relative">
         <div className="absolute inset-0 bg-gradient-to-br from-pink-50 via-blue-50 to-pink-50 opacity-60"></div>
         <div className="relative max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-          <div className="h-64 bg-cover bg-center rounded-lg" style={{
-            backgroundImage: 'url("https://images.unsplash.com/photo-1587334207988-c6295e6d3a96?w=800")'
-          }}></div>
+          <div
+            className="h-64 bg-cover bg-center rounded-lg"
+            style={{
+              backgroundImage:
+                'url("https://images.unsplash.com/photo-1587334207988-c6295e6d3a96?w=800")'
+            }}
+          ></div>
           <div>
-            <h2 className="text-4xl md:text-5xl font-serif mb-6">Creating unique experiences since 2023</h2>
+            <h2 className="text-4xl md:text-5xl font-serif mb-6">
+              Creating unique experiences since 2023
+            </h2>
             <p className="text-gray-700 mb-6 leading-relaxed">
-              We've been joyfully serving the community with our mobile carts and party rentals. All praise be to God.
+              We've been joyfully serving the community with our mobile carts
+              and party rentals. All praise be to God.
             </p>
             <button className="px-8 py-3 bg-black text-white text-sm tracking-wide hover:bg-gray-800 transition">
               Learn More
@@ -463,7 +555,8 @@ function HomePage() {
       <section className="py-20 px-4 bg-white">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-2xl md:text-3xl font-serif italic mb-4">
-            "The attention to detail is exactly what we needed to represent our business"
+            "The attention to detail is exactly what we needed to represent our
+            business"
           </p>
           <p className="text-gray-600">La Picciolita Mexicanas, Indiana</p>
         </div>
@@ -471,29 +564,45 @@ function HomePage() {
 
       <section className="py-20 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl md:text-5xl font-serif text-center mb-4">Featured Items</h2>
-          <p className="text-center text-gray-600 mb-12">Shop our curated selection of treats and beverages</p>
+          <h2 className="text-4xl md:text-5xl font-serif text-center mb-4">
+            Featured Items
+          </h2>
+          <p className="text-center text-gray-600 mb-12">
+            Shop our curated selection of treats and beverages
+          </p>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
-              <div className="h-64 bg-cover bg-center" style={{
-                backgroundImage: 'url("https://images.unsplash.com/photo-1587314168485-3236d6710814?w=600")'
-              }}></div>
+              <div
+                className="h-64 bg-cover bg-center"
+                style={{
+                  backgroundImage:
+                    'url("https://images.unsplash.com/photo-1587314168485-3236d6710814?w=600")'
+                }}
+              ></div>
               <div className="p-4">
                 <h3 className="font-serif text-lg">Little Licks Ice Cream</h3>
               </div>
             </div>
             <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
-              <div className="h-64 bg-cover bg-center" style={{
-                backgroundImage: 'url("https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=600")'
-              }}></div>
+              <div
+                className="h-64 bg-cover bg-center"
+                style={{
+                  backgroundImage:
+                    'url("https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=600")'
+                }}
+              ></div>
               <div className="p-4">
                 <h3 className="font-serif text-lg">Gourmet Pancakes</h3>
               </div>
             </div>
             <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
-              <div className="h-64 bg-cover bg-center" style={{
-                backgroundImage: 'url("https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=600")'
-              }}></div>
+              <div
+                className="h-64 bg-cover bg-center"
+                style={{
+                  backgroundImage:
+                    'url("https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=600")'
+                }}
+              ></div>
               <div className="p-4">
                 <h3 className="font-serif text-lg">Specialty Beverages</h3>
               </div>
@@ -503,7 +612,9 @@ function HomePage() {
       </section>
 
       <section className="py-20 px-4 bg-black text-white text-center">
-        <h2 className="text-3xl md:text-4xl font-serif mb-8">Let's give your guests something to talk about!</h2>
+        <h2 className="text-3xl md:text-4xl font-serif mb-8">
+          Let's give your guests something to talk about!
+        </h2>
       </section>
 
       <Footer />
@@ -531,20 +642,24 @@ function ServicesPage() {
 
         <div className="mb-8">
           <div className="flex gap-4 border-b">
-            <button className="px-4 py-2 border-b-2 border-black font-semibold">Services</button>
+            <button className="px-4 py-2 border-b-2 border-black font-semibold">
+              Services
+            </button>
             <button className="px-4 py-2 text-gray-600">Staff</button>
           </div>
         </div>
 
         <div className="grid gap-6">
           {services.map((service) => (
-            <div 
+            <div
               key={service.id}
               onClick={() => navigate(`/service/${service.id}`)}
               className="bg-white rounded-lg p-6 flex justify-between items-center cursor-pointer hover:shadow-lg transition"
             >
               <div className="flex-1">
-                <h3 className="text-2xl font-semibold mb-2">{service.name}</h3>
+                <h3 className="text-2xl font-semibold mb-2">
+                  {service.name}
+                </h3>
                 <p className="text-gray-600 mb-4">{service.description}</p>
                 <div className="flex gap-4 text-sm text-gray-700">
                   <span>Book now</span>
@@ -552,8 +667,8 @@ function ServicesPage() {
                   {service.duration && <span>• {service.duration}</span>}
                 </div>
               </div>
-              <img 
-                src={service.image} 
+              <img
+                src={service.image}
                 alt={service.name}
                 className="w-24 h-24 object-cover rounded-lg ml-6"
               />
@@ -570,8 +685,8 @@ function ServiceDetailPage() {
   const { serviceId } = useParams();
   const navigate = useNavigate();
   const [selectedOption, setSelectedOption] = useState(null);
-  
-  const service = services.find(s => s.id === serviceId);
+
+  const service = services.find((s) => s.id === serviceId);
 
   if (!service) {
     return <div className="pt-20 text-center">Service not found</div>;
@@ -580,7 +695,7 @@ function ServiceDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <button 
+        <button
           onClick={() => navigate('/services')}
           className="flex items-center gap-2 text-gray-600 hover:text-black mb-6"
         >
@@ -597,10 +712,10 @@ function ServiceDetailPage() {
         <p className="text-gray-700 mb-8">{service.description}</p>
 
         <h2 className="text-2xl font-bold mb-6">Options</h2>
-        
+
         <div className="space-y-4 mb-8">
           {service.options.map((option, index) => (
-            <div 
+            <div
               key={index}
               onClick={() => setSelectedOption(index)}
               className="bg-white rounded-lg p-6 flex justify-between items-center cursor-pointer hover:border-2 hover:border-black transition"
@@ -609,12 +724,23 @@ function ServiceDetailPage() {
                 <h3 className="text-xl font-semibold mb-1">{option.name}</h3>
                 <p className="text-gray-600 text-sm mb-2">{option.details}</p>
                 <div className="flex gap-2 text-gray-700">
-                  <span>${typeof option.price === 'number' ? option.price + '.00' : option.price}</span>
+                  <span>
+                    $
+                    {typeof option.price === 'number'
+                      ? option.price + '.00'
+                      : option.price}
+                  </span>
                   <span>•</span>
                   <span>{option.duration}</span>
                 </div>
               </div>
-              <div className={`w-6 h-6 rounded-full border-2 ${selectedOption === index ? 'border-black bg-black' : 'border-gray-300'}`}></div>
+              <div
+                className={`w-6 h-6 rounded-full border-2 ${
+                  selectedOption === index
+                    ? 'border-black bg-black'
+                    : 'border-gray-300'
+                }`}
+              ></div>
             </div>
           ))}
         </div>
@@ -628,6 +754,362 @@ function ServiceDetailPage() {
   );
 }
 
+// ----------------- Cart page -----------------
+function CartPage({ cart, onUpdateQuantity, onRemoveItem, onClearCart, onCheckout }) {
+  const navigate = useNavigate();
+
+  const subtotal = cart.reduce(
+    (sum, item) => sum + item.pricePerUnit * item.quantity,
+    0
+  );
+
+  const handleCheckoutClick = async () => {
+    if (!onCheckout) return;
+    if (cart.length === 0) {
+      alert('Your cart is empty.');
+      return;
+    }
+    await onCheckout(cart);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 pt-20">
+      <div className="max-w-5xl mx-auto px-4 py-10">
+        <button
+          onClick={() => navigate('/shop')}
+          className="flex items-center gap-2 text-gray-600 hover:text-black mb-6"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="text-sm">Continue shopping</span>
+        </button>
+
+        <h1 className="text-3xl font-serif mb-6">Your Cart</h1>
+
+        {cart.length === 0 ? (
+          <div className="bg-white rounded-xl p-8 text-center shadow-sm">
+            <p className="text-gray-600 mb-4">
+              Your cart is currently empty.
+            </p>
+            <button
+              onClick={() => navigate('/shop')}
+              className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800"
+            >
+              Browse prepackaged treats
+            </button>
+          </div>
+        ) : (
+          <div className="grid lg:grid-cols-[2fr,1fr] gap-8">
+            {/* Cart items */}
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <div className="space-y-4">
+                {cart.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex gap-4 border-b pb-4 last:border-b-0 last:pb-0"
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-24 h-24 object-cover rounded-lg"
+                    />
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-lg">
+                            {item.name}
+                          </h3>
+                          {item.variantName && (
+                            <p className="text-sm text-gray-600">
+                              Option: {item.variantName}
+                            </p>
+                          )}
+                          {item.notes && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {item.notes}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => onRemoveItem(item.id)}
+                          className="text-xs text-gray-500 hover:text-black"
+                        >
+                          Remove
+                        </button>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between">
+                        <div className="inline-flex items-center border rounded-lg">
+                          <button
+                            type="button"
+                            className="px-3 py-2 disabled:opacity-40"
+                            disabled={item.quantity <= 1}
+                            onClick={() =>
+                              onUpdateQuantity(
+                                item.id,
+                                Math.max(1, item.quantity - 1)
+                              )
+                            }
+                          >
+                            −
+                          </button>
+                          <span className="px-4">{item.quantity}</span>
+                          <button
+                            type="button"
+                            className="px-3 py-2"
+                            onClick={() =>
+                              onUpdateQuantity(item.id, item.quantity + 1)
+                            }
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <div className="text-right">
+                          <div className="text-sm text-gray-500">
+                            ${item.pricePerUnit.toFixed(2)} each
+                          </div>
+                          <div className="text-base font-semibold">
+                            $
+                            {(item.pricePerUnit * item.quantity).toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 flex justify-between items-center text-sm">
+                <button
+                  onClick={onClearCart}
+                  className="text-gray-500 hover:text-black"
+                >
+                  Clear cart
+                </button>
+                <span className="text-gray-500">
+                  {cart.length} item{cart.length > 1 ? 's' : ''}
+                </span>
+              </div>
+            </div>
+
+            {/* Summary */}
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h2 className="text-lg font-semibold mb-4">Order summary</h2>
+              <div className="flex justify-between text-sm mb-2">
+                <span>Subtotal</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm text-gray-500 mb-4">
+                <span>Estimated tax & fees</span>
+                <span>Calculated later</span>
+              </div>
+              <div className="flex justify-between text-base font-semibold mb-6">
+                <span>Total</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+
+              <button
+                onClick={handleCheckoutClick}
+                className="w-full py-3 bg-black text-white rounded-lg hover:bg-gray-800"
+              >
+                Checkout
+              </button>
+              <p className="text-xs text-gray-500 mt-3">
+                This is a demo cart for the Scope Consulting project. No real
+                payment is processed.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
+// ----------------- Employee page -----------------
+function EmployeePage() {
+  const [orders, setOrders] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const res = await fetch('http://localhost:3001/api/orders');
+      if (!res.ok) {
+        throw new Error('Failed to load orders');
+      }
+      const data = await res.json();
+      setOrders(data);
+    } catch (err) {
+      setError(err.message || 'Error loading orders');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchOrders();
+    const id = setInterval(fetchOrders, 10000);
+    return () => clearInterval(id);
+  }, []);
+
+  const updateStatus = async (orderId, status) => {
+    try {
+      const res = await fetch(
+        `http://localhost:3001/api/orders/${orderId}/status`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        }
+      );
+      if (!res.ok) throw new Error('Failed to update status');
+      const updated = await res.json();
+      setOrders((prev) =>
+        prev.map((o) => (o.id === updated.id ? updated : o))
+      );
+    } catch (err) {
+      alert(err.message || 'Could not update order status');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 pt-20">
+      <div className="max-w-6xl mx-auto px-4 py-10">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-serif">Employee Orders View</h1>
+          <button
+            onClick={fetchOrders}
+            className="px-4 py-2 border border-black rounded-lg text-sm hover:bg-black hover:text-white"
+          >
+            Refresh
+          </button>
+        </div>
+
+        <p className="text-sm text-gray-600 mb-4">
+          This page is for Luxe Delicacies staff to see incoming online orders.
+          It pulls data from <code>http://localhost:3001/api/orders</code>.
+        </p>
+
+        {loading && <p className="text-gray-600 mb-4">Loading orders…</p>}
+        {error && (
+          <p className="text-red-500 mb-4 text-sm">
+            {error}
+          </p>
+        )}
+
+        {orders.length === 0 && !loading ? (
+          <div className="bg-white rounded-xl p-8 shadow-sm text-center">
+            <p className="text-gray-600">
+              No orders yet. When a customer checks out from the shop, their
+              order will appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {orders.map((order) => (
+              <div
+                key={order.id}
+                className="bg-white rounded-xl p-6 shadow-sm border"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h2 className="font-semibold">
+                      Order #{order.id.slice(0, 8)}
+                    </h2>
+                    <p className="text-xs text-gray-500">
+                      Placed:{' '}
+                      {new Date(order.createdAt).toLocaleString()}
+                    </p>
+                    {order.customerNote && (
+                      <p className="text-xs text-gray-600 mt-1">
+                        Note: {order.customerNote}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs uppercase tracking-wide px-2 py-1 rounded-full bg-gray-100">
+                      {order.status}
+                    </span>
+                    <select
+                      value={order.status}
+                      onChange={(e) =>
+                        updateStatus(order.id, e.target.value)
+                      }
+                      className="text-xs border rounded px-2 py-1"
+                    >
+                      <option value="NEW">NEW</option>
+                      <option value="IN_PROGRESS">IN_PROGRESS</option>
+                      <option value="COMPLETED">COMPLETED</option>
+                      <option value="CANCELLED">CANCELLED</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {order.items.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex justify-between text-sm border-b pb-2 last:border-b-0 last:pb-0"
+                    >
+                      <div>
+                        <p className="font-medium">{item.name}</p>
+                        {item.variantName && (
+                          <p className="text-xs text-gray-600">
+                            Option: {item.variantName}
+                          </p>
+                        )}
+                        {item.notes && (
+                          <p className="text-xs text-gray-500">
+                            {item.notes}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right text-sm">
+                        <div>
+                          Qty: <span>{item.quantity}</span>
+                        </div>
+                        <div>
+                          ${item.pricePerUnit.toFixed(2)} each
+                        </div>
+                        <div className="font-semibold">
+                          $
+                          {(
+                            item.pricePerUnit * item.quantity
+                          ).toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-3 text-right text-sm text-gray-600">
+                  Total:{' '}
+                  <span className="font-semibold">
+                    $
+                    {order.items
+                      .reduce(
+                        (sum, i) =>
+                          sum + i.pricePerUnit * i.quantity,
+                        0
+                      )
+                      .toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
+// ----------------- Footer -----------------
 function Footer() {
   const [email, setEmail] = useState('');
 
@@ -645,7 +1127,9 @@ function Footer() {
             <p className="text-gray-400 mb-2">Indiana</p>
             <p className="text-gray-400 mb-2">765.476.1558</p>
             <p className="text-gray-400 mb-4">info@luxedelicacies.com</p>
-            <p className="text-gray-400 text-sm">Willing to travel out of state</p>
+            <p className="text-gray-400 text-sm">
+              Willing to travel out of state
+            </p>
           </div>
           <div>
             <h3 className="text-lg mb-4">Delivery and Pick up Hours</h3>
@@ -655,9 +1139,25 @@ function Footer() {
           <div>
             <h3 className="text-lg mb-4">Follow</h3>
             <div className="space-y-2">
-              <a href="https://www.instagram.com/LuxeDelicacies" target="_blank" rel="noopener noreferrer" className="block text-gray-400 hover:text-white">Instagram</a>
-              <a href="https://www.facebook.com/LuxeDelicacies" target="_blank" rel="noopener noreferrer" className="block text-gray-400 hover:text-white">Facebook</a>
-              <p className="text-gray-400 hover:text-white cursor-pointer">TikTok</p>
+              <a
+                href="https://www.instagram.com/LuxeDelicacies"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-gray-400 hover:text-white"
+              >
+                Instagram
+              </a>
+              <a
+                href="https://www.facebook.com/LuxeDelicacies"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-gray-400 hover:text-white"
+              >
+                Facebook
+              </a>
+              <p className="text-gray-400 hover:text-white cursor-pointer">
+                TikTok
+              </p>
             </div>
           </div>
         </div>
@@ -670,13 +1170,21 @@ function Footer() {
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             <Mail className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
-            <a href="https://www.facebook.com/LuxeDelicacies" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://www.facebook.com/LuxeDelicacies"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Facebook className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
             </a>
-            <a href="https://www.instagram.com/LuxeDelicacies" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://www.instagram.com/LuxeDelicacies"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Instagram className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
             </a>
             <span className="text-gray-400">© 2025</span>
@@ -687,16 +1195,78 @@ function Footer() {
   );
 }
 
-export default function App() {
+// ----------------- App (cart state + checkout to server) -----------------
+export default function App({ onOrderPlaced }) {
+  const [cart, setCart] = useState([]);
+
+  const handleAddToCart = (item) => {
+    const id = `${item.productId}-${item.variantId || 'base'}-${Date.now()}-${
+      Math.random().toString(36).slice(2)
+    }`;
+
+    setCart((prev) => [
+      ...prev,
+      {
+        id,
+        ...item
+      }
+    ]);
+  };
+
+  const handleUpdateQuantity = (itemId, newQty) => {
+    setCart((prev) =>
+      prev.map((it) =>
+        it.id === itemId ? { ...it, quantity: newQty } : it
+      )
+    );
+  };
+
+  const handleRemoveItem = (itemId) => {
+    setCart((prev) => prev.filter((it) => it.id !== itemId));
+  };
+
+  const handleClearCart = () => setCart([]);
+
+  const handleCheckout = async (cartItems) => {
+    if (!cartItems || cartItems.length === 0) {
+      alert('Your cart is empty.');
+      return;
+    }
+
+    // Tell RootApp an order was placed so it can show up in EmployeeApp
+    if (onOrderPlaced) {
+      onOrderPlaced(cartItems);
+    }
+
+    setCart([]);
+    alert('Order placed! It now appears on the employee dashboard.');
+  };
+
+
   return (
     <Router>
-      <Navigation />
+      <Navigation cartCount={cart.length} />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/shop" element={<ShopPage />} /> {/* ADDED route */}
+        <Route
+          path="/shop"
+          element={<ShopPage onAddToCart={handleAddToCart} />}
+        />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/service/:serviceId" element={<ServiceDetailPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/cart"
+          element={
+            <CartPage
+              cart={cart}
+              onUpdateQuantity={handleUpdateQuantity}
+              onRemoveItem={handleRemoveItem}
+              onClearCart={handleClearCart}
+              onCheckout={handleCheckout}
+            />
+          }
+        />
       </Routes>
     </Router>
   );
