@@ -91,6 +91,94 @@ const services = [
   }
 ];
 
+// ----------------- Floating customer chat widget -----------------
+function CustomerChatWidget({ isLoggedIn, messages = [], onSend }) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [text, setText] = React.useState('');
+
+  // 🔑 Only show chat widget if user is logged in
+  if (!isLoggedIn) return null;
+
+  const handleSend = () => {
+    if (!text.trim()) return;
+    if (onSend) onSend(text.trim());
+    setText('');
+  };
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50">
+      {isOpen ? (
+        <div className="w-80 bg-white shadow-xl rounded-lg border border-gray-200 flex flex-col">
+          <div className="px-4 py-2 border-b flex justify-between items-center">
+            <span className="text-sm font-semibold">Chat with Luxe Staff</span>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="text-gray-500 hover:text-black"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="p-3 h-64 overflow-y-auto space-y-2 text-sm">
+            {messages.length === 0 && (
+              <p className="text-gray-400 text-center mt-4 text-xs">
+                Start a conversation with the staff.
+              </p>
+            )}
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex ${
+                  msg.sender === 'customer'
+                    ? 'justify-end'
+                    : 'justify-start'
+                }`}
+              >
+                <div
+                  className={`max-w-[75%] px-3 py-2 rounded-lg text-xs ${
+                    msg.sender === 'customer'
+                      ? 'bg-black text-white'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  <div>{msg.text}</div>
+                  <div className="mt-1 text-[10px] opacity-70">
+                    {msg.time}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="border-t px-3 py-2 flex gap-2">
+            <input
+              className="flex-1 text-xs px-2 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-black"
+              placeholder="Type a message..."
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            />
+            <button
+              onClick={handleSend}
+              className="px-3 py-2 bg-black text-white rounded-lg text-xs"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="px-4 py-3 bg-black text-white rounded-full shadow-lg text-xs"
+        >
+          Chat with staff
+        </button>
+      )}
+    </div>
+  );
+}
+
+
 // ----------------- Info drawer -----------------
 function InfoDrawer({ isOpen, onClose }) {
   const navigate = useNavigate();
@@ -200,7 +288,7 @@ function InfoDrawer({ isOpen, onClose }) {
 }
 
 // ----------------- Navigation (shows cart count) -----------------
-function Navigation({ cartCount = 0 }) {
+function Navigation({ cartCount = 0, isLoggedIn = false}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [infoDrawerOpen, setInfoDrawerOpen] = useState(false);
   const navigate = useNavigate();
@@ -213,7 +301,6 @@ function Navigation({ cartCount = 0 }) {
       <nav className="fixed top-10 w-full bg-white shadow-sm z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            {/* Logo */}
             <Link to="/" className="flex items-center">
               <div className="w-16 h-16 bg-gray-100 border border-gray-300 flex items-center justify-center">
                 <div className="text-center">
@@ -223,7 +310,6 @@ function Navigation({ cartCount = 0 }) {
               </div>
             </Link>
 
-            {/* Center links (desktop) */}
             <div className="hidden md:flex space-x-8">
               <Link
                 to="/shop"
@@ -239,46 +325,43 @@ function Navigation({ cartCount = 0 }) {
               </Link>
             </div>
 
-            {/* Right side: search, cart, mobile menu */}
-            <div className="flex items-center gap-3">
-              {/* (optional) info/search button */}
-              <button
-                onClick={() => setInfoDrawerOpen(true)}
-                className="hidden md:inline-flex p-2 rounded-full hover:bg-gray-100"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-
-              {/* Cart button with badge */}
+            <div className="flex items-center gap-4">
+              {/* Cart button */}
               <button
                 onClick={() => navigate('/cart')}
                 className="relative p-2 rounded-full hover:bg-gray-100"
-                aria-label="View cart"
               >
                 <ShoppingCart className="w-5 h-5" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 min-w-[1.25rem] px-1 rounded-full bg-black text-white text-[10px] flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] rounded-full px-1">
                     {cartCount}
                   </span>
                 )}
               </button>
+
+              {/* 🔑 Only show "Info & Sign in" button when NOT logged in */}
+              {!isLoggedIn && (
+                <button
+                  onClick={() => setInfoDrawerOpen(true)}
+                  className="hidden md:inline-block text-xs tracking-wide px-4 py-2 border border-black hover:bg-black hover:text-white transition"
+                >
+                  Info &amp; Sign in
+                </button>
+              )}
 
               {/* Mobile menu toggle */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="md:hidden p-2 hover:text-gray-600"
               >
-                {mobileMenuOpen ? (
-                  <X className="w-6 h-6" />
-                ) : (
-                  <Menu className="w-6 h-6" />
-                )}
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
+
+
           </div>
         </div>
 
-        {/* Mobile dropdown menu */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-white border-t">
             <div className="px-4 py-4 space-y-3">
@@ -318,17 +401,28 @@ function Navigation({ cartCount = 0 }) {
   );
 }
 
-
 // ----------------- Login, Home, Services, ServiceDetail -----------------
-function LoginPage() {
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+function LoginPage({ onLogin, currentUser }) {
+  const [isSignUp, setIsSignUp] = React.useState(false);
+  const [email, setEmail] = React.useState(currentUser?.email || '');
+  const [password, setPassword] = React.useState('');
+  const [name, setName] = React.useState(currentUser?.name || '');
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const user = {
+      name: isSignUp
+        ? name || 'Guest'
+        : currentUser?.name || name || 'Guest',
+      email: email || currentUser?.email || 'guest@example.com'
+    };
+
+    if (onLogin) {
+      onLogin(user);
+    }
+
     alert(isSignUp ? 'Account created!' : 'Logged in!');
     navigate('/');
   };
@@ -370,7 +464,6 @@ function LoginPage() {
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
                   placeholder="Enter your name"
-                  required
                 />
               </div>
             )}
@@ -382,7 +475,7 @@ function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                placeholder="Enter your email"
+                placeholder="Enter any email"
                 required
               />
             </div>
@@ -396,7 +489,7 @@ function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                placeholder="Enter your password"
+                placeholder="Enter any password"
                 required
               />
             </div>
@@ -448,6 +541,7 @@ function LoginPage() {
     </div>
   );
 }
+
 
 function HomePage() {
   const navigate = useNavigate();
@@ -927,7 +1021,7 @@ function CartPage({ cart, onUpdateQuantity, onRemoveItem, onClearCart, onCheckou
   );
 }
 
-// ----------------- Employee page -----------------
+// ----------------- Employee page (legacy, not used in RootApp) -----------------
 function EmployeePage() {
   const [orders, setOrders] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
@@ -1195,9 +1289,23 @@ function Footer() {
   );
 }
 
-// ----------------- App (cart state + checkout to server) -----------------
-export default function App({ onOrderPlaced }) {
-  const [cart, setCart] = useState([]);
+
+
+
+
+
+
+// ----------------- App (cart state + checkout + login + chat) -----------------
+
+// ----------------- App (cart state + checkout + login + chat) -----------------
+export default function App({
+  onOrderPlaced,
+  customerUser,
+  onCustomerLogin,
+  chatMessages = [],
+  onSendChatMessage
+}) {
+  const [cart, setCart] = React.useState([]);
 
   const handleAddToCart = (item) => {
     const id = `${item.productId}-${item.variantId || 'base'}-${Date.now()}-${
@@ -1233,7 +1341,6 @@ export default function App({ onOrderPlaced }) {
       return;
     }
 
-    // Tell RootApp an order was placed so it can show up in EmployeeApp
     if (onOrderPlaced) {
       onOrderPlaced(cartItems);
     }
@@ -1242,10 +1349,19 @@ export default function App({ onOrderPlaced }) {
     alert('Order placed! It now appears on the employee dashboard.');
   };
 
+  const handleLogin = (user) => {
+    if (onCustomerLogin) {
+      onCustomerLogin(user);
+    }
+  };
+
+  const isLoggedIn = !!customerUser;
 
   return (
     <Router>
-      <Navigation cartCount={cart.length} />
+      {/* 🔑 pass isLoggedIn into Navigation so it can hide "Info & Sign in" */}
+      <Navigation cartCount={cart.length} isLoggedIn={isLoggedIn} />
+
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route
@@ -1254,7 +1370,15 @@ export default function App({ onOrderPlaced }) {
         />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/service/:serviceId" element={<ServiceDetailPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/login"
+          element={
+            <LoginPage
+              onLogin={handleLogin}
+              currentUser={customerUser}
+            />
+          }
+        />
         <Route
           path="/cart"
           element={
@@ -1268,6 +1392,15 @@ export default function App({ onOrderPlaced }) {
           }
         />
       </Routes>
+
+      {/* 💬 floating chat widget (only if logged in) */}
+      <CustomerChatWidget
+        isLoggedIn={isLoggedIn}
+        messages={chatMessages}
+        onSend={onSendChatMessage}
+      />
     </Router>
   );
 }
+
+

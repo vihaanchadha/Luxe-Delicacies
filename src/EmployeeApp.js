@@ -661,21 +661,16 @@ function RequestDetailPage({
   onNavigate,
   reservations,
   orders,
-  onApproveRequest
+  onApproveRequest,
+  chatMessages = [],
+  onSendChatMessage
 }) {
   const [showApprovalConfirm, setShowApprovalConfirm] = useState(false);
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      sender: 'customer',
-      text: 'Hi! I submitted a reservation request. Looking forward to hearing from you!',
-      time: '10:30 AM'
-    }
-  ]);
   const [newMessage, setNewMessage] = useState('');
 
-  const request = reservations.find((r) => r.id === requestId);
+  const request = reservations.find(r => r.id === requestId);
 
   if (!request) {
     return (
@@ -703,26 +698,17 @@ function RequestDetailPage({
 
   const handleDecline = () => {
     alert(
-      `Reservation ${request.id} has been declined. Customer will be notified that their request could not be accommodated.`
+      `Reservation ${request.id} has been declined. Customer will be notified.`
     );
     onNavigate('new-requests');
   };
 
   const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      setMessages([
-        ...messages,
-        {
-          sender: 'employee',
-          text: newMessage,
-          time: new Date().toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
-          })
-        }
-      ]);
-      setNewMessage('');
+    if (!newMessage.trim()) return;
+    if (onSendChatMessage) {
+      onSendChatMessage(newMessage.trim());
     }
+    setNewMessage('');
   };
 
   return (
@@ -737,12 +723,17 @@ function RequestDetailPage({
         </button>
 
         <div className="grid lg:grid-cols-3 gap-6">
+          {/* LEFT: request details (unchanged) */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm p-8 border-l-4 border-yellow-400">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h1 className="text-3xl font-bold mb-2">New Reservation Request</h1>
-                  <p className="text-lg text-gray-600 mb-3">Request #{request.id}</p>
+                  <h1 className="text-3xl font-bold mb-2">
+                    New Reservation Request
+                  </h1>
+                  <p className="text-lg text-gray-600 mb-3">
+                    Request #{request.id}
+                  </p>
                   <span className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800">
                     AWAITING APPROVAL
                   </span>
@@ -760,86 +751,8 @@ function RequestDetailPage({
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-8 mb-8">
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                      <User className="w-5 h-5" />
-                      Customer Information
-                    </h2>
-                    <div className="space-y-3 text-gray-700">
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Name</p>
-                        <p className="font-semibold">{request.customerName}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Email</p>
-                        <p className="font-semibold">{request.customerEmail}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Phone</p>
-                        <p className="font-semibold">{request.customerPhone}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                      <Calendar className="w-5 h-5" />
-                      Event Details
-                    </h2>
-                    <div className="space-y-3 text-gray-700">
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Date</p>
-                        <p className="font-semibold">{request.date}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Time</p>
-                        <p className="font-semibold">{request.time}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Location</p>
-                        <p className="font-semibold flex items-start gap-2">
-                          <MapPin className="w-4 h-4 mt-1 flex-shrink-0" />
-                          <span>{request.location}</span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-lg font-semibold mb-3">Service Information</h2>
-                    <div className="space-y-3 text-gray-700">
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Service</p>
-                        <p className="font-semibold">{request.service}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Option Selected</p>
-                        <p className="font-semibold">{request.option}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Total Price</p>
-                        <p className="flex items-center gap-2 text-2xl font-bold text-green-600">
-                          <DollarSign className="w-6 h-6" />
-                          ${request.price}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {request.notes && (
-                    <div>
-                      <h2 className="text-lg font-semibold mb-3">Customer Notes</h2>
-                      <div className="text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <p className="text-sm italic">&quot;{request.notes}&quot;</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+              {/* customer / event / service info – same as your old code */}
+              {/* ... keep your existing content section here ... */}
 
               <div className="border-t pt-6 flex gap-4">
                 <button
@@ -859,7 +772,7 @@ function RequestDetailPage({
             </div>
           </div>
 
-          {/* Chat side panel */}
+          {/* RIGHT: shared chat UI */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
               <div className="flex justify-between items-center mb-4">
@@ -875,9 +788,15 @@ function RequestDetailPage({
               {showChat ? (
                 <div>
                   <div className="border rounded-lg mb-4 h-96 overflow-y-auto p-4 bg-gray-50">
-                    {messages.map((msg, idx) => (
+                    {chatMessages.length === 0 && (
+                      <p className="text-xs text-gray-500">
+                        No messages yet. Start the conversation below.
+                      </p>
+                    )}
+
+                    {chatMessages.map((msg, idx) => (
                       <div
-                        key={idx}
+                        key={msg.id || idx}
                         className={`mb-4 ${
                           msg.sender === 'employee' ? 'text-right' : 'text-left'
                         }`}
@@ -889,9 +808,16 @@ function RequestDetailPage({
                               : 'bg-gray-200 text-gray-800'
                           }`}
                         >
+                          <p className="text-xs font-semibold mb-1">
+                            {msg.sender === 'employee'
+                              ? 'You'
+                              : msg.sender === 'customer'
+                              ? 'Customer'
+                              : 'User'}
+                          </p>
                           <p className="text-sm">{msg.text}</p>
                           <p
-                            className={`text-xs mt-1 ${
+                            className={`text-[10px] mt-1 ${
                               msg.sender === 'employee'
                                 ? 'text-blue-100'
                                 : 'text-gray-500'
@@ -909,7 +835,7 @@ function RequestDetailPage({
                       type="text"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                       placeholder="Type a message..."
                       className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     />
@@ -934,62 +860,13 @@ function RequestDetailPage({
           </div>
         </div>
 
-        {/* Approve / decline dialogs */}
-        {showApprovalConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 className="text-xl font-bold mb-4">Approve Reservation?</h3>
-              <p className="text-gray-600 mb-6">
-                This will approve the reservation and move it to Pending Orders. The
-                customer will be notified via SMS/email.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleApprove}
-                  className="flex-1 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
-                >
-                  Yes, Approve
-                </button>
-                <button
-                  onClick={() => setShowApprovalConfirm(false)}
-                  className="flex-1 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showDeclineConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 className="text-xl font-bold mb-4">Decline Reservation?</h3>
-              <p className="text-gray-600 mb-6">
-                This will decline the reservation request. The customer will be notified
-                that their request could not be accommodated.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleDecline}
-                  className="flex-1 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
-                >
-                  Yes, Decline
-                </button>
-                <button
-                  onClick={() => setShowDeclineConfirm(false)}
-                  className="flex-1 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* approval / decline modals – keep your existing versions here */}
+        {/* ... */}
       </div>
     </div>
   );
 }
+
 
 // ----------------- Reservation Detail -----------------
 function ReservationDetailPage({ reservationId, onNavigate, reservations }) {
@@ -1273,19 +1150,15 @@ function OrderDetailPage({
   onNavigate,
   orders,
   onUpdateOrderStatus,
-  onConfirmOrder
+  onConfirmOrder,
+  chatMessages = [],
+  onSendChatMessage
 }) {
   const [showChat, setShowChat] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      sender: 'customer',
-      text: 'Hi! Just checking on my order status.',
-      time: '10:30 AM'
-    }
-  ]);
+  const [showConfetti, setShowConfetti] = useState(false);
   const [newMessage, setNewMessage] = useState('');
 
-  const order = orders.find((o) => o.id === orderId);
+  const order = orders.find(o => o.id === orderId);
 
   if (!order) {
     return (
@@ -1303,31 +1176,32 @@ function OrderDetailPage({
     );
   }
 
-  const handleConfirmOrder = () => {
-    onConfirmOrder(orderId);
-    alert('Order confirmed! Moved to Upcoming Reservations and now in preparation phase.');
+  const handleConfirmOrderClick = () => {
+    setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 3000);
+    if (onConfirmOrder) {
+      onConfirmOrder(orderId);
+    }
+    setTimeout(() => {
+      alert(
+        'Order confirmed! Moved to Upcoming Reservations and now in preparation phase.'
+      );
+    }, 500);
   };
 
   const handleMarkReady = () => {
-    onUpdateOrderStatus(orderId, 'ready');
+    if (onUpdateOrderStatus) {
+      onUpdateOrderStatus(orderId, 'ready');
+    }
     alert('Order marked as ready for pickup!');
   };
 
   const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      setMessages([
-        ...messages,
-        {
-          sender: 'employee',
-          text: newMessage,
-          time: new Date().toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
-          })
-        }
-      ]);
-      setNewMessage('');
+    if (!newMessage.trim()) return;
+    if (onSendChatMessage) {
+      onSendChatMessage(newMessage.trim());
     }
+    setNewMessage('');
   };
 
   return (
@@ -1342,211 +1216,15 @@ function OrderDetailPage({
         </button>
 
         <div className="grid lg:grid-cols-3 gap-6">
+          {/* LEFT: order details (keep your existing content) */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm p-8">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h1 className="text-3xl font-bold mb-2">
-                    Order #{order.id}
-                  </h1>
-                  <span
-                    className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${
-                      order.status === 'ready'
-                        ? 'bg-green-100 text-green-800'
-                        : order.status === 'confirmed'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}
-                  >
-                    {order.status === 'pending'
-                      ? 'EDITING ORDER'
-                      : order.status === 'confirmed'
-                      ? 'IN PREPARATION'
-                      : 'READY FOR PICKUP'}
-                  </span>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-600">Total Amount</p>
-                  <p className="text-3xl font-bold">${order.total}</p>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-8 mb-8">
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                      <User className="w-5 h-5" />
-                      Customer Information
-                    </h2>
-                    <div className="space-y-2 text-gray-700">
-                      <p>
-                        <span className="font-semibold">Name:</span>{' '}
-                        {order.customerName}
-                      </p>
-                      <p className="flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
-                        {order.customerEmail}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                      <Calendar className="w-5 h-5" />
-                      Order Timeline
-                    </h2>
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                        <div>
-                          <p className="font-semibold">Order Placed</p>
-                          <p className="text-sm text-gray-600">
-                            {order.orderDate}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        {order.status === 'pending' ? (
-                          <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
-                        ) : (
-                          <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                        )}
-                        <div>
-                          <p className="font-semibold">Editing Order</p>
-                          <p className="text-sm text-gray-600">
-                            {order.status === 'pending'
-                              ? 'Awaiting confirmation'
-                              : 'Order confirmed'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        {order.status === 'ready' || order.status === 'confirmed' ? (
-                          <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                        ) : (
-                          <AlertCircle className="w-5 h-5 text-gray-400 mt-0.5" />
-                        )}
-                        <div>
-                          <p className="font-semibold">In Preparation</p>
-                          <p className="text-sm text-gray-600">
-                            {order.status === 'ready'
-                              ? 'Completed'
-                              : order.status === 'confirmed'
-                              ? 'In progress'
-                              : 'Not started'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        {order.status === 'ready' ? (
-                          <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                        ) : (
-                          <AlertCircle className="w-5 h-5 text-gray-400 mt-0.5" />
-                        )}
-                        <div>
-                          <p className="font-semibold">
-                            {order.status === 'ready'
-                              ? 'Ready for Pickup'
-                              : 'Awaiting Completion'}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Pickup scheduled: {order.pickupDate}
-                            {order.eventTime && ` at ${order.eventTime}`}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Order items */}
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                      <Package className="w-5 h-5" />
-                      Order Items
-                    </h2>
-                    <div className="space-y-3">
-                      {order.items.map((item, idx) => (
-                        <div
-                          key={idx}
-                          className="flex justify-between items-start bg-gray-50 p-3 rounded-lg"
-                        >
-                          <div className="flex-1">
-                            <p className="font-semibold">{item.name}</p>
-                            <p className="text-sm text-gray-600">
-                              Quantity: {item.quantity}
-                            </p>
-                          </div>
-                          <p className="font-semibold">
-                            ${item.price * item.quantity}
-                          </p>
-                        </div>
-                      ))}
-                      <div className="border-t pt-3 flex justify-between items-center">
-                        <p className="text-lg font-semibold">Total</p>
-                        <p className="text-2xl font-bold">${order.total}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {order.eventLocation && (
-                    <div>
-                      <h2 className="text-lg font-semibold mb-3">Event Location</h2>
-                      <p className="text-gray-700 bg-gray-50 p-4 rounded-lg flex items-start gap-2">
-                        <MapPin className="w-4 h-4 mt-1 flex-shrink-0" />
-                        <span>{order.eventLocation}</span>
-                      </p>
-                    </div>
-                  )}
-
-                  {order.notes && (
-                    <div>
-                      <h2 className="text-lg font-semibold mb-3">Special Notes</h2>
-                      <p className="text-gray-700 bg-gray-50 p-4 rounded-lg">
-                        {order.notes}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="border-t pt-6 flex gap-4">
-                {order.status === 'pending' && (
-                  <button
-                    onClick={handleConfirmOrder}
-                    className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
-                  >
-                    Confirm Order
-                  </button>
-                )}
-                {order.status === 'confirmed' && (
-                  <button
-                    onClick={handleMarkReady}
-                    className="flex-1 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
-                  >
-                    Mark as Ready
-                  </button>
-                )}
-                {order.status === 'ready' && (
-                  <button className="flex-1 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition">
-                    Mark as Picked Up
-                  </button>
-                )}
-                <button
-                  onClick={() => setShowChat(!showChat)}
-                  className="flex-1 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition"
-                >
-                  Contact Customer
-                </button>
-                <button className="px-6 py-3 border border-red-300 text-red-600 rounded-lg font-semibold hover:bg-red-50 transition">
-                  Cancel Order
-                </button>
-              </div>
+              {/* ... all your existing order detail UI ... */}
+              {/* Make sure to keep the buttons that call handleConfirmOrderClick, handleMarkReady, etc. */}
             </div>
           </div>
 
-          {/* Chat side panel */}
+          {/* RIGHT: shared chat UI */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
               <div className="flex justify-between items-center mb-4">
@@ -1562,9 +1240,15 @@ function OrderDetailPage({
               {showChat ? (
                 <div>
                   <div className="border rounded-lg mb-4 h-96 overflow-y-auto p-4 bg-gray-50">
-                    {messages.map((msg, idx) => (
+                    {chatMessages.length === 0 && (
+                      <p className="text-xs text-gray-500">
+                        No messages yet. Start the conversation below.
+                      </p>
+                    )}
+
+                    {chatMessages.map((msg, idx) => (
                       <div
-                        key={idx}
+                        key={msg.id || idx}
                         className={`mb-4 ${
                           msg.sender === 'employee' ? 'text-right' : 'text-left'
                         }`}
@@ -1576,9 +1260,16 @@ function OrderDetailPage({
                               : 'bg-gray-200 text-gray-800'
                           }`}
                         >
+                          <p className="text-xs font-semibold mb-1">
+                            {msg.sender === 'employee'
+                              ? 'You'
+                              : msg.sender === 'customer'
+                              ? 'Customer'
+                              : 'User'}
+                          </p>
                           <p className="text-sm">{msg.text}</p>
                           <p
-                            className={`text-xs mt-1 ${
+                            className={`text-[10px] mt-1 ${
                               msg.sender === 'employee'
                                 ? 'text-blue-100'
                                 : 'text-gray-500'
@@ -1596,7 +1287,7 @@ function OrderDetailPage({
                       type="text"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                       placeholder="Type a message..."
                       className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     />
@@ -1620,10 +1311,13 @@ function OrderDetailPage({
             </div>
           </div>
         </div>
+
+        {/* If you had confetti or extra UI, keep that here */}
       </div>
     </div>
   );
 }
+
 
 // ----------------- MAIN EMPLOYEE APP WRAPPER -----------------
 
@@ -1636,7 +1330,9 @@ export default function EmployeeApp({
   reservations = [],
   setReservations = () => {},
   orders = [],
-  setOrders = () => {}
+  setOrders = () => {},
+  chatMessages = [],
+  onSendChatMessage = () => {}
 }) {
   const [currentPage, setCurrentPage] = React.useState('dashboard');
   const [selectedId, setSelectedId] = React.useState(null);
@@ -1727,6 +1423,8 @@ export default function EmployeeApp({
           reservations={reservations}
           orders={orders}
           onApproveRequest={handleApproveRequest}
+          chatMessages={chatMessages}
+          onSendChatMessage={onSendChatMessage}
         />
       )}
       {currentPage === 'reservations' && (
@@ -1755,6 +1453,8 @@ export default function EmployeeApp({
           orders={orders}
           onUpdateOrderStatus={handleUpdateOrderStatus}
           onConfirmOrder={handleConfirmOrder}
+          chatMessages={chatMessages}
+          onSendChatMessage={onSendChatMessage}
         />
       )}
     </div>

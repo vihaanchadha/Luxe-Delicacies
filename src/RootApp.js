@@ -8,6 +8,11 @@ export default function RootApp() {
   const [reservations, setReservations] = useState([]);
   const [orders, setOrders] = useState([]);
 
+  // 💡 new: logged-in customer info
+  const [customerUser, setCustomerUser] = useState(null);
+
+  // 💬 new: shared chat thread between customer + employee
+  const [chatMessages, setChatMessages] = useState([]);
 
   // called by customer App when they checkout
   const handleOrderPlaced = (cartItems) => {
@@ -21,8 +26,8 @@ export default function RootApp() {
 
     const newOrder = {
       id: nextId,
-      customerName: 'Online Customer',
-      customerEmail: 'online@example.com',
+      customerName: customerUser?.name || 'Online Customer',
+      customerEmail: customerUser?.email || 'online@example.com',
       items: cartItems.map((item) => ({
         name: item.name,
         quantity: item.quantity,
@@ -38,9 +43,31 @@ export default function RootApp() {
     setOrders((prev) => [...prev, newOrder]);
   };
 
+  // ✅ called when the customer logs in on the customer side
+  const handleCustomerLogin = (user) => {
+    setCustomerUser(user);
+  };
+
+  // ✅ central chat handler, shared by both views
+  const handleSendChatMessage = (sender, text) => {
+    if (!text || !text.trim()) return;
+
+    const msg = {
+      id: Date.now() + Math.random(),
+      sender, // 'customer' or 'employee'
+      text: text.trim(),
+      time: new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    };
+
+    setChatMessages((prev) => [...prev, msg]);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* simple top toggle bar */}
+      {/* top toggle bar */}
       <div className="w-full bg-black text-white flex justify-center gap-8 py-3 fixed top-0 left-0 z-50">
         <button
           onClick={() => setView('customer')}
@@ -62,13 +89,26 @@ export default function RootApp() {
 
       <div className="pt-12">
         {view === 'customer' ? (
-          <App onOrderPlaced={handleOrderPlaced} />
+          <App
+            onOrderPlaced={handleOrderPlaced}
+            customerUser={customerUser}
+            onCustomerLogin={handleCustomerLogin}
+            chatMessages={chatMessages}
+            onSendChatMessage={(text) =>
+              handleSendChatMessage('customer', text)
+            }
+          />
         ) : (
           <EmployeeApp
             reservations={reservations}
             setReservations={setReservations}
             orders={orders}
             setOrders={setOrders}
+            // these two are ready for when we want employee chat UI
+            chatMessages={chatMessages}
+            onSendChatMessage={(text) =>
+              handleSendChatMessage('employee', text)
+            }
           />
         )}
       </div>
