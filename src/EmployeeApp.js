@@ -1145,6 +1145,7 @@ function OrdersPage({ onNavigate, orders }) {
 }
 
 // ----------------- Order Detail -----------------
+
 function OrderDetailPage({
   orderId,
   onNavigate,
@@ -1154,59 +1155,48 @@ function OrderDetailPage({
   chatMessages = [],
   onSendChatMessage
 }) {
-  const [showChat, setShowChat] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [newMessage, setNewMessage] = useState('');
-
-  const order = orders.find(o => o.id === orderId);
+  const order = orders.find((o) => o.id === orderId);
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Order not found</h1>
+      <div className="min-h-screen bg-gray-50 pt-24">
+        <div className="max-w-6xl mx-auto px-4 pb-10">
           <button
             onClick={() => onNavigate('orders')}
-            className="px-6 py-2 bg-black text-white rounded-lg"
+            className="flex items-center gap-2 text-gray-600 hover:text-black mb-6"
           >
-            Back to Orders
+            <ArrowLeft className="w-5 h-5" />
+            <span className="text-sm">Back to Orders</span>
           </button>
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <p className="text-gray-600">Order not found.</p>
+          </div>
         </div>
       </div>
     );
   }
 
-  const handleConfirmOrderClick = () => {
-    setShowConfetti(true);
-    setTimeout(() => setShowConfetti(false), 3000);
-    if (onConfirmOrder) {
-      onConfirmOrder(orderId);
-    }
-    setTimeout(() => {
-      alert(
-        'Order confirmed! Moved to Upcoming Reservations and now in preparation phase.'
-      );
-    }, 500);
-  };
+  const totalFromItems =
+    order.items?.reduce((sum, item) => {
+      const unitPrice =
+        item.price !== undefined && item.price !== null
+          ? item.price
+          : item.pricePerUnit || 0;
+      return sum + unitPrice * (item.quantity || 1);
+    }, 0) || 0;
 
-  const handleMarkReady = () => {
-    if (onUpdateOrderStatus) {
-      onUpdateOrderStatus(orderId, 'ready');
-    }
-    alert('Order marked as ready for pickup!');
-  };
-
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
-    if (onSendChatMessage) {
-      onSendChatMessage(newMessage.trim());
-    }
-    setNewMessage('');
-  };
+  const hasServiceItems =
+    order.items?.some((item) => {
+      const unitPrice =
+        item.price !== undefined && item.price !== null
+          ? item.price
+          : item.pricePerUnit || 0;
+      return unitPrice === 0;
+    }) || false;
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="min-h-screen bg-gray-50 pt-24">
+      <div className="max-w-6xl mx-auto px-4 pb-10">
         <button
           onClick={() => onNavigate('orders')}
           className="flex items-center gap-2 text-gray-600 hover:text-black mb-6"
@@ -1215,108 +1205,173 @@ function OrderDetailPage({
           <span className="text-sm">Back to Orders</span>
         </button>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* LEFT: order details (keep your existing content) */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm p-8">
-              {/* ... all your existing order detail UI ... */}
-              {/* Make sure to keep the buttons that call handleConfirmOrderClick, handleMarkReady, etc. */}
-            </div>
-          </div>
-
-          {/* RIGHT: shared chat UI */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Chat with Customer</h3>
-                <button
-                  onClick={() => setShowChat(!showChat)}
-                  className="text-sm text-gray-600 hover:text-black"
-                >
-                  {showChat ? 'Minimize' : 'Expand'}
-                </button>
+        <div className="grid lg:grid-cols-[2fr,1.1fr] gap-6">
+          {/* LEFT: order details */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h1 className="text-2xl font-semibold mb-1">
+                  Order #{order.id?.slice(0, 8)}
+                </h1>
+                <p className="text-sm text-gray-500">
+                  Placed:{' '}
+                  {order.orderDate
+                    ? new Date(order.orderDate).toLocaleString()
+                    : '—'}
+                </p>
+                {order.pickupDate && (
+                  <p className="text-sm text-gray-500">
+                    Pickup / Event date: {order.pickupDate}
+                  </p>
+                )}
               </div>
 
-              {showChat ? (
+              <div className="text-right text-xs space-y-2">
+                <span className="inline-block uppercase tracking-wide px-2 py-1 rounded-full bg-gray-100">
+                  {order.status || 'PENDING'}
+                </span>
                 <div>
-                  <div className="border rounded-lg mb-4 h-96 overflow-y-auto p-4 bg-gray-50">
-                    {chatMessages.length === 0 && (
-                      <p className="text-xs text-gray-500">
-                        No messages yet. Start the conversation below.
-                      </p>
-                    )}
-
-                    {chatMessages.map((msg, idx) => (
-                      <div
-                        key={msg.id || idx}
-                        className={`mb-4 ${
-                          msg.sender === 'employee' ? 'text-right' : 'text-left'
-                        }`}
-                      >
-                        <div
-                          className={`inline-block max-w-xs px-4 py-2 rounded-lg ${
-                            msg.sender === 'employee'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-200 text-gray-800'
-                          }`}
-                        >
-                          <p className="text-xs font-semibold mb-1">
-                            {msg.sender === 'employee'
-                              ? 'You'
-                              : msg.sender === 'customer'
-                              ? 'Customer'
-                              : 'User'}
-                          </p>
-                          <p className="text-sm">{msg.text}</p>
-                          <p
-                            className={`text-[10px] mt-1 ${
-                              msg.sender === 'employee'
-                                ? 'text-blue-100'
-                                : 'text-gray-500'
-                            }`}
-                          >
-                            {msg.time}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                      placeholder="Type a message..."
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                    />
-                    <button
-                      onClick={handleSendMessage}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                    >
-                      <Mail className="w-5 h-5" />
-                    </button>
-                  </div>
+                  <label className="block mb-1 text-gray-500">
+                    Update status
+                  </label>
+                  <select
+                    value={order.status}
+                    onChange={(e) =>
+                      onUpdateOrderStatus(order.id, e.target.value)
+                    }
+                    className="border rounded px-2 py-1 text-xs"
+                  >
+                    <option value="pending">PENDING</option>
+                    <option value="NEW">NEW</option>
+                    <option value="IN_PROGRESS">IN_PROGRESS</option>
+                    <option value="COMPLETED">COMPLETED</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                    <option value="confirmed">CONFIRMED</option>
+                  </select>
                 </div>
-              ) : (
-                <button
-                  onClick={() => setShowChat(true)}
-                  className="w-full py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
-                >
-                  <Mail className="w-5 h-5" />
-                  Open Chat
-                </button>
+                {onConfirmOrder && (
+                  <button
+                    onClick={() => onConfirmOrder(order.id)}
+                    className="mt-1 w-full px-2 py-1 border border-black rounded text-[11px] hover:bg-black hover:text-white"
+                  >
+                    Convert to Reservation
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Customer info */}
+            <div className="mb-6">
+              <h2 className="text-sm font-semibold mb-2 text-gray-700">
+                Customer
+              </h2>
+              <p className="text-sm text-gray-800">
+                {order.customerName || 'Online Customer'}
+              </p>
+              {order.customerEmail && (
+                <p className="text-sm text-gray-500">{order.customerEmail}</p>
+              )}
+            </div>
+
+            {/* Items */}
+            <div className="mb-6">
+              <h2 className="text-sm font-semibold mb-3 text-gray-700">
+                Items in this order
+              </h2>
+              <div className="space-y-3">
+                {order.items?.map((item, idx) => {
+                  const unitPrice =
+                    item.price !== undefined && item.price !== null
+                      ? item.price
+                      : item.pricePerUnit || 0;
+                  const lineTotal = unitPrice * (item.quantity || 1);
+                  const isServiceItem = unitPrice === 0;
+
+                  return (
+                    <div
+                      key={idx}
+                      className="flex justify-between items-start border-b pb-3 last:border-b-0 last:pb-0"
+                    >
+                      <div>
+                        <p className="font-medium text-sm">{item.name}</p>
+                        {item.variantName && (
+                          <p className="text-xs text-gray-500">
+                            Option: {item.variantName}
+                          </p>
+                        )}
+                        {item.notes && (
+                          <p className="text-xs text-gray-500">
+                            Notes: {item.notes}
+                          </p>
+                        )}
+                        {isServiceItem && (
+                          <p className="mt-1 text-[11px] inline-flex items-center px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                            Service item – price to be finalized with customer
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right text-xs text-gray-700">
+                        {!isServiceItem && (
+                          <>
+                            <div>
+                              ${unitPrice.toFixed(2)} × {item.quantity || 1}
+                            </div>
+                            <div className="font-semibold">
+                              ${lineTotal.toFixed(2)}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Totals */}
+            <div className="mt-4 border-t pt-4 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Total from priced items</span>
+                <span className="font-semibold">
+                  ${totalFromItems.toFixed(2)}
+                </span>
+              </div>
+              {hasServiceItems && (
+                <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  This order contains event / service items with custom pricing.
+                  Use the chat to confirm details and finalize pricing.
+                </p>
+              )}
+              {order.notes && (
+                <p className="mt-3 text-xs text-gray-600">
+                  Customer note: {order.notes}
+                </p>
               )}
             </div>
           </div>
-        </div>
 
-        {/* If you had confetti or extra UI, keep that here */}
+          {/* RIGHT: simple chat panel placeholder */}
+          <div className="bg-white rounded-xl p-6 shadow-sm flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-gray-800">
+                Chat with Customer
+              </h2>
+              <button className="text-xs text-gray-500">Expand</button>
+            </div>
+
+            <button className="w-full py-3 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+              Open Chat
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+
+
+
+
 
 
 // ----------------- MAIN EMPLOYEE APP WRAPPER -----------------

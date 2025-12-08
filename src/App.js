@@ -403,27 +403,31 @@ function Navigation({ cartCount = 0, isLoggedIn = false}) {
 
 // ----------------- Login, Home, Services, ServiceDetail -----------------
 function LoginPage({ onLogin, currentUser }) {
-  const [isSignUp, setIsSignUp] = React.useState(false);
-  const [email, setEmail] = React.useState(currentUser?.email || '');
-  const [password, setPassword] = React.useState('');
-  const [name, setName] = React.useState(currentUser?.name || '');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // ✅ Build a simple user object
     const user = {
       name: isSignUp
-        ? name || 'Guest'
-        : currentUser?.name || name || 'Guest',
-      email: email || currentUser?.email || 'guest@example.com'
+        ? name || email.split('@')[0] || 'Customer'
+        : email.split('@')[0] || 'Customer',
+      email
     };
 
+    // ✅ Tell RootApp that the customer is now logged in
     if (onLogin) {
       onLogin(user);
     }
 
     alert(isSignUp ? 'Account created!' : 'Logged in!');
+
+    // ✅ Go back to homepage where Navigation + chat live
     navigate('/');
   };
 
@@ -475,7 +479,7 @@ function LoginPage({ onLogin, currentUser }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                placeholder="Enter any email"
+                placeholder="Enter your email"
                 required
               />
             </div>
@@ -489,7 +493,7 @@ function LoginPage({ onLogin, currentUser }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                placeholder="Enter any password"
+                placeholder="Enter your password"
                 required
               />
             </div>
@@ -541,6 +545,7 @@ function LoginPage({ onLogin, currentUser }) {
     </div>
   );
 }
+
 
 
 function HomePage() {
@@ -775,7 +780,7 @@ function ServicesPage() {
   );
 }
 
-function ServiceDetailPage() {
+function ServiceDetailPage({ onAddToCart }) {
   const { serviceId } = useParams();
   const navigate = useNavigate();
   const [selectedOption, setSelectedOption] = useState(null);
@@ -785,6 +790,34 @@ function ServiceDetailPage() {
   if (!service) {
     return <div className="pt-20 text-center">Service not found</div>;
   }
+
+  const handleAddServiceToCart = () => {
+    if (selectedOption === null) {
+      alert('Please select an option first.');
+      return;
+    }
+
+    const option = service.options[selectedOption];
+
+    const cartItem = {
+      productId: `service-${service.id}`,
+      variantId: option.name,
+      name: service.name,
+      variantName: option.name,
+      pricePerUnit:
+        typeof option.price === 'number' ? option.price : 0,
+      quantity: 1,
+      image: service.image,
+      notes: option.details || ''
+    };
+
+    if (onAddToCart) {
+      onAddToCart(cartItem);
+    }
+
+    // Optional: send them straight to the cart
+    navigate('/cart');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
@@ -815,8 +848,12 @@ function ServiceDetailPage() {
               className="bg-white rounded-lg p-6 flex justify-between items-center cursor-pointer hover:border-2 hover:border-black transition"
             >
               <div>
-                <h3 className="text-xl font-semibold mb-1">{option.name}</h3>
-                <p className="text-gray-600 text-sm mb-2">{option.details}</p>
+                <h3 className="text-xl font-semibold mb-1">
+                  {option.name}
+                </h3>
+                <p className="text-gray-600 text-sm mb-2">
+                  {option.details}
+                </p>
                 <div className="flex gap-2 text-gray-700">
                   <span>
                     $
@@ -839,7 +876,10 @@ function ServiceDetailPage() {
           ))}
         </div>
 
-        <button className="w-full py-4 bg-black text-white text-lg font-semibold rounded-lg hover:bg-gray-800 transition">
+        <button
+          onClick={handleAddServiceToCart}
+          className="w-full py-4 bg-black text-white text-lg font-semibold rounded-lg hover:bg-gray-800 transition"
+        >
           Add
         </button>
       </div>
@@ -848,13 +888,19 @@ function ServiceDetailPage() {
   );
 }
 
+
 // ----------------- Cart page -----------------
 function CartPage({ cart, onUpdateQuantity, onRemoveItem, onClearCart, onCheckout }) {
   const navigate = useNavigate();
 
   const subtotal = cart.reduce(
-    (sum, item) => sum + item.pricePerUnit * item.quantity,
+    (sum, item) =>
+      sum + (item.pricePerUnit ? item.pricePerUnit * item.quantity : 0),
     0
+  );
+
+  const hasServiceItems = cart.some(
+    (item) => !item.pricePerUnit || item.pricePerUnit === 0
   );
 
   const handleCheckoutClick = async () => {
@@ -960,11 +1006,16 @@ function CartPage({ cart, onUpdateQuantity, onRemoveItem, onClearCart, onCheckou
 
                         <div className="text-right">
                           <div className="text-sm text-gray-500">
-                            ${item.pricePerUnit.toFixed(2)} each
+                            {item.pricePerUnit && item.pricePerUnit > 0
+                              ? `$${item.pricePerUnit.toFixed(2)} each`
+                              : 'Price will be finalized with staff'}
                           </div>
                           <div className="text-base font-semibold">
-                            $
-                            {(item.pricePerUnit * item.quantity).toFixed(2)}
+                            {item.pricePerUnit && item.pricePerUnit > 0 ? (
+                              `$${(item.pricePerUnit * item.quantity).toFixed(2)}`
+                            ) : (
+                              'TBD'
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1001,6 +1052,14 @@ function CartPage({ cart, onUpdateQuantity, onRemoveItem, onClearCart, onCheckou
                 <span>Total</span>
                 <span>${subtotal.toFixed(2)}</span>
               </div>
+
+              {hasServiceItems && (
+                <p className="mb-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  Some items are event services with custom pricing. Staff will
+                  contact you in the chat box to confirm the details and final
+                  price after you place your order.
+                </p>
+              )}
 
               <button
                 onClick={handleCheckoutClick}
@@ -1369,7 +1428,15 @@ export default function App({
           element={<ShopPage onAddToCart={handleAddToCart} />}
         />
         <Route path="/services" element={<ServicesPage />} />
-        <Route path="/service/:serviceId" element={<ServiceDetailPage />} />
+        <Route
+          path="/service/:serviceId"
+          element={
+            <ServiceDetailPage
+              onAddToCart={handleAddToCart}
+            />
+          }
+        />
+
         <Route
           path="/login"
           element={
