@@ -1157,6 +1157,16 @@ function OrderDetailPage({
 }) {
   const order = orders.find((o) => o.id === orderId);
 
+  const [isChatOpen, setIsChatOpen] = React.useState(false);
+  const [draft, setDraft] = React.useState('');
+
+  const handleSend = () => {
+    if (!draft.trim() || !onSendChatMessage) return;
+    onSendChatMessage(draft.trim());
+    setDraft('');
+    setIsChatOpen(true);
+  };
+
   if (!order) {
     return (
       <div className="min-h-screen bg-gray-50 pt-24">
@@ -1350,24 +1360,94 @@ function OrderDetailPage({
             </div>
           </div>
 
-          {/* RIGHT: simple chat panel placeholder */}
+          {/* RIGHT: chat panel */}
           <div className="bg-white rounded-xl p-6 shadow-sm flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-gray-800">
                 Chat with Customer
               </h2>
-              <button className="text-xs text-gray-500">Expand</button>
+              <button
+                className="text-xs text-gray-500"
+                onClick={() => setIsChatOpen((v) => !v)}
+              >
+                {isChatOpen ? 'Collapse' : 'Expand'}
+              </button>
             </div>
 
-            <button className="w-full py-3 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
-              Open Chat
-            </button>
+            {!isChatOpen ? (
+              <button
+                className="w-full py-3 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+                onClick={() => setIsChatOpen(true)}
+              >
+                Open Chat
+              </button>
+            ) : (
+              <>
+                <div className="flex-1 border rounded-lg mb-3 overflow-y-auto max-h-72 p-3 space-y-2 text-xs">
+                  {chatMessages.length === 0 ? (
+                    <p className="text-gray-400">
+                      No messages yet. Start the conversation with the customer.
+                    </p>
+                  ) : (
+                    chatMessages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex ${
+                          msg.sender === 'employee'
+                            ? 'justify-end'
+                            : 'justify-start'
+                        }`}
+                      >
+                        <div
+                          className={`px-3 py-2 rounded-2xl max-w-[80%] ${
+                            msg.sender === 'employee'
+                              ? 'bg-blue-600 text-white rounded-br-sm'
+                              : 'bg-gray-100 text-gray-800 rounded-bl-sm'
+                          }`}
+                        >
+                          <div className="text-[10px] opacity-70 mb-0.5">
+                            {msg.sender === 'employee'
+                              ? 'You'
+                              : 'Customer'}
+                            {msg.time ? ` • ${msg.time}` : ''}
+                          </div>
+                          <div className="text-[11px]">{msg.text}</div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 mt-auto">
+                  <input
+                    type="text"
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend();
+                      }
+                    }}
+                    className="flex-1 border rounded-lg px-3 py-2 text-xs"
+                    placeholder="Type a message to the customer..."
+                  />
+                  <button
+                    onClick={handleSend}
+                    className="px-3 py-2 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700"
+                  >
+                    Send
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 }
+
 
 
 
