@@ -1,1465 +1,594 @@
 // src/EmployeeApp.js
 import React, { useState } from 'react';
 import {
-  Calendar,
+  AlertCircle,
   Package,
-  Menu,
-  X,
-  ArrowLeft,
+  MessageCircle,
+  Calendar as CalendarIcon,
   Clock,
-  MapPin,
-  Phone,
-  Mail,
-  User,
-  DollarSign,
-  CheckCircle,
-  AlertCircle
+  MapPin
 } from 'lucide-react';
 
-// ----------------- Seed data -----------------
-
-
-/*export const initialReservations = [
-  {
-    id: 'RES001',
-    customerName: 'Sarah Johnson',
-    customerEmail: 'sarah.j@email.com',
-    customerPhone: '(765) 123-4567',
-    service: 'Live Spun Cotton Candy Cart',
-    option: '2 Hours',
-    date: '2025-11-15',
-    time: '2:00 PM',
-    location: 'Lafayette Community Center, 123 Main St, Lafayette, IN',
-    price: 275,
-    status: 'approved',
-    notes: 'Birthday party for 8-year-old. Pink and blue theme requested.',
-    createdAt: '2025-10-28'
-  },
-  {
-    id: 'RES002',
-    customerName: 'Michael Chen',
-    customerEmail: 'mchen@email.com',
-    customerPhone: '(765) 234-5678',
-    service: 'White Bounce House Rental',
-    option: 'Mama Size',
-    date: '2025-11-20',
-    time: '11:00 AM',
-    location: '456 Oak Street, West Lafayette, IN',
-    price: 200,
-    status: 'approved',
-    notes: 'Waiver signed. Setup in backyard.',
-    createdAt: '2025-10-25'
-  },
-  {
-    id: 'RES003',
-    customerName: 'Emily Rodriguez',
-    customerEmail: 'emily.r@email.com',
-    customerPhone: '(765) 345-6789',
-    service: 'Shimmer Wall Rental',
-    option: 'Standard',
-    date: '2025-11-08',
-    time: '6:00 PM',
-    location: 'The Grand Hall, 789 Event Way, Indianapolis, IN',
-    price: 130,
-    status: 'approved',
-    notes: 'Wedding reception. Gold shimmer requested.',
-    createdAt: '2025-10-30'
-  },
-  {
-    id: 'RES004',
-    customerName: 'Jennifer Adams',
-    customerEmail: 'jadams@email.com',
-    customerPhone: '(765) 555-1234',
-    service: 'Cotton Candy Cart',
-    option: '3 Hours',
-    date: '2025-11-18',
-    time: '3:00 PM',
-    location: '789 Maple Drive, Lafayette, IN',
-    price: 375,
-    status: 'pending_approval',
-    notes: 'Corporate event. Need variety of flavors.',
-    createdAt: '2025-10-31'
-  },
-  {
-    id: 'RES005',
-    customerName: 'Robert Martinez',
-    customerEmail: 'rmartinez@email.com',
-    customerPhone: '(765) 555-5678',
-    service: 'Flower Wall Rental',
-    option: 'Standard',
-    date: '2025-11-22',
-    time: '1:00 PM',
-    location: 'Sunset Gardens, 456 Rose Ave, Indianapolis, IN',
-    price: 130,
-    status: 'pending_approval',
-    notes: 'Baby shower. Pink and white flowers preferred.',
-    createdAt: '2025-10-31'
-  },
-  {
-    id: 'RES006',
-    customerName: 'Lisa Thompson',
-    customerEmail: 'lthompson@email.com',
-    customerPhone: '(765) 555-9012',
-    service: 'Mini Pancakes Service',
-    option: 'Standard Service',
-    date: '2025-11-25',
-    time: '10:00 AM',
-    location: 'Community Hall, 321 Oak St, West Lafayette, IN',
-    price: 300,
-    status: 'pending_approval',
-    notes: 'Thanksgiving brunch event. Approximately 40 guests.',
-    createdAt: '2025-10-31'
-  }
-];
-
-export const initialOrders = [
-  {
-    id: 'ORD001',
-    customerName: 'Jessica Martinez',
-    customerEmail: 'jess.m@email.com',
-    items: [
-      { name: 'Little Licks Ice Cream - Vanilla', quantity: 10, price: 5 },
-      { name: 'Little Licks Ice Cream - Chocolate', quantity: 10, price: 5 }
-    ],
-    total: 100,
-    orderDate: '2025-10-29',
-    pickupDate: '2025-11-05',
-    status: 'pending',
-    notes: 'Please include spoons and napkins'
-  },
-  {
-    id: 'ORD002',
-    customerName: 'Robert Taylor',
-    customerEmail: 'rtaylor@email.com',
-    items: [{ name: 'Gourmet Pancake Mix', quantity: 5, price: 15 }],
-    total: 75,
-    orderDate: '2025-10-27',
-    pickupDate: '2025-11-02',
-    status: 'ready',
-    notes: ''
-  }
-];
-*/
-// ----------------- Navigation -----------------
-function Navigation({ onNavigate }) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+// Small helper: treat some orders as "service" if they look like events
+function isServiceOrder(order) {
+  if (!order || !order.items) return false;
   return (
-    <nav className="fixed w-full bg-white shadow-sm z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          <button onClick={() => onNavigate('dashboard')} className="flex items-center">
-            <div className="w-16 h-16 bg-gray-100 border border-gray-300 flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-2xl font-serif">LD</div>
-                <div className="text-xs tracking-wider">EMPLOYEE</div>
-              </div>
-            </div>
-          </button>
+    order.items.some((i) => i.kind === 'service' || i.isService) ||
+    !order.items.some((i) => typeof i.pricePerUnit === 'number' && i.pricePerUnit > 0)
+  );
+}
 
-          <div className="hidden md:flex space-x-8">
-            <button
-              onClick={() => onNavigate('new-requests')}
-              className="text-sm tracking-wide hover:text-gray-600 transition flex items-center gap-2"
-            >
-              <AlertCircle className="w-4 h-4" />
-              NEW REQUESTS
-            </button>
-            <button
-              onClick={() => onNavigate('reservations')}
-              className="text-sm tracking-wide hover:text-gray-600 transition flex items-center gap-2"
-            >
-              <Calendar className="w-4 h-4" />
-              RESERVATIONS
-            </button>
-            <button
-              onClick={() => onNavigate('orders')}
-              className="text-sm tracking-wide hover:text-gray-600 transition flex items-center gap-2"
-            >
-              <Package className="w-4 h-4" />
-              ORDERS
-            </button>
+/* ───────────────────────────────── Employee Nav ───────────────────────────────── */
+
+function EmployeeNavigation({ viewMode, onChangeView }) {
+  return (
+    <nav className="w-full bg-white border-b border-gray-200 px-6 py-4 sticky top-12 z-30">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <button className="flex items-center">
+          <div className="w-16 h-16 bg-gray-100 border border-gray-300 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-2xl font-serif">LD</div>
+              <div className="text-[10px] tracking-[0.2em]">EMPLOYEE</div>
+            </div>
+          </div>
+        </button>
+
+        <div className="flex items-center gap-4 text-xs tracking-wide text-gray-600">
+          <div className="hidden md:flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            <span>NEW REQUESTS</span>
+          </div>
+          <div className="hidden md:flex items-center gap-2">
+            <Package className="w-4 h-4" />
+            <span>PENDING / ACTIVE ORDERS</span>
+          </div>
+          <div className="hidden md:flex items-center gap-2">
+            <MessageCircle className="w-4 h-4" />
+            <span>CUSTOMER CHAT</span>
           </div>
 
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 hover:text-gray-600"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* View toggle: Orders vs Calendar */}
+          <div className="flex items-center gap-2 ml-4">
+            <button
+              onClick={() => onChangeView('orders')}
+              className={`px-3 py-1 rounded-full border text-[11px] ${
+                viewMode === 'orders'
+                  ? 'bg-black text-white border-black'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+              }`}
+            >
+              Orders View
+            </button>
+            <button
+              onClick={() => onChangeView('calendar')}
+              className={`px-3 py-1 rounded-full border text-[11px] flex items-center gap-1 ${
+                viewMode === 'calendar'
+                  ? 'bg-black text-white border-black'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+              }`}
+            >
+              <CalendarIcon className="w-3 h-3" />
+              Calendar
+            </button>
+          </div>
         </div>
       </div>
-
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t">
-          <div className="px-4 py-4 space-y-3">
-            <button
-              onClick={() => {
-                onNavigate('new-requests');
-                setMobileMenuOpen(false);
-              }}
-              className="block text-sm tracking-wide w-full text-left"
-            >
-              NEW REQUESTS
-            </button>
-            <button
-              onClick={() => {
-                onNavigate('reservations');
-                setMobileMenuOpen(false);
-              }}
-              className="block text-sm tracking-wide w-full text-left"
-            >
-              RESERVATIONS
-            </button>
-            <button
-              onClick={() => {
-                onNavigate('orders');
-                setMobileMenuOpen(false);
-              }}
-              className="block text-sm tracking-wide w-full text-left"
-            >
-              ORDERS
-            </button>
-          </div>
-        </div>
-      )}
     </nav>
   );
 }
 
-// ----------------- Dashboard -----------------
-function DashboardPage({ onNavigate, reservations, orders }) {
-  const today = new Date().toISOString().split('T')[0];
-  const upcomingReservations = reservations.filter(
-    (r) => r.date >= today && r.status === 'approved'
+/* ───────────────────────────── Left Column: Orders Lists ───────────────────────────── */
+
+function OrdersColumn({ orders, selectedOrderId, onSelectOrder }) {
+  const newRequests = orders.filter(
+    (o) =>
+      !o.status ||
+      o.status === 'pending' ||
+      o.status === 'PENDING' ||
+      o.status === 'NEW'
   );
-  const pendingOrders = orders.filter((o) => o.status === 'pending');
-  const pendingRequests = reservations.filter((r) => r.status === 'pending_approval');
 
-  return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <h1 className="text-4xl font-serif mb-8">Employee Dashboard</h1>
+  const activeOrders = orders.filter(
+    (o) => o.status === 'IN_PROGRESS' || o.status === 'in_progress'
+  );
 
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
-          {/* New Requests */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">New Requests</h2>
-              <button
-                onClick={() => onNavigate('new-requests')}
-                className="text-sm text-gray-600 hover:text-black"
-              >
-                View all
-              </button>
-            </div>
-            <div className="space-y-4">
-              {pendingRequests.slice(0, 3).map((req) => (
-                <div
-                  key={req.id}
-                  onClick={() => onNavigate('request-detail', req.id)}
-                  className="p-4 border border-yellow-200 bg-yellow-50 rounded-lg hover:border-yellow-400 cursor-pointer transition"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold">{req.customerName}</h3>
-                    <span className="text-xs px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full font-semibold">
-                      NEW
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600">{req.service}</p>
-                  <p className="text-sm text-gray-500">
-                    {req.date} at {req.time}
-                  </p>
-                </div>
-              ))}
-              {pendingRequests.length === 0 && (
-                <p className="text-gray-500 text-center py-4">No pending requests</p>
-              )}
-            </div>
-          </div>
+  const completedOrders = orders.filter(
+    (o) => o.status === 'COMPLETED' || o.status === 'completed'
+  );
 
-          {/* Pending Orders */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">Pending Orders</h2>
-              <button
-                onClick={() => onNavigate('orders')}
-                className="text-sm text-gray-600 hover:text-black"
-              >
-                View all
-              </button>
-            </div>
-            <div className="space-y-4">
-              {pendingOrders.map((order) => (
-                <div
-                  key={order.id}
-                  onClick={() => onNavigate('order-detail', order.id)}
-                  className="p-4 border border-gray-200 rounded-lg hover:border-black cursor-pointer transition"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold">{order.customerName}</h3>
-                    <span className="text-sm font-semibold">${order.total}</span>
-                  </div>
-                  <p className="text-sm text-gray-600">Order Date: {order.orderDate}</p>
-                  <p className="text-sm text-gray-600">Pickup: {order.pickupDate}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+  const cancelledOrders = orders.filter(
+    (o) => o.status === 'CANCELLED' || o.status === 'cancelled'
+  );
 
-          {/* Upcoming Reservations */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">Upcoming Reservations</h2>
-              <button
-                onClick={() => onNavigate('reservations')}
-                className="text-sm text-gray-600 hover:text-black"
-              >
-                View all
-              </button>
-            </div>
-            <div className="space-y-4">
-              {upcomingReservations.slice(0, 3).map((res) => (
-                <div
-                  key={res.id}
-                  onClick={() => onNavigate('reservation-detail', res.id)}
-                  className="p-4 border border-gray-200 rounded-lg hover:border-black cursor-pointer transition"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold">{res.customerName}</h3>
-                    <span className="text-sm text-gray-600">{res.date}</span>
-                  </div>
-                  <p className="text-sm text-gray-600">{res.service}</p>
-                  <p className="text-sm text-gray-500">{res.time}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+  const renderOrderItem = (order) => (
+    <button
+      key={order.id}
+      onClick={() => onSelectOrder(order)}
+      className={`w-full text-left px-3 py-2 rounded-md border mb-2 hover:bg-gray-50 ${
+        selectedOrderId === order.id ? 'border-black bg-gray-50' : 'border-gray-200'
+      }`}
+    >
+      <div className="flex justify-between items-center">
+        <div>
+          <p className="text-sm font-semibold">
+            {order.customerName || 'Online Customer'}
+          </p>
+          <p className="text-xs text-gray-500">
+            #{order.id} • {order.items?.length || 0} item
+            {order.items && order.items.length !== 1 ? 's' : ''}
+          </p>
+          {order.orderDate && (
+            <p className="text-[10px] text-gray-400">Placed: {order.orderDate}</p>
+          )}
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] uppercase tracking-wide text-gray-500">
+            {order.status || 'pending'}
+          </p>
+          <p className="text-sm font-semibold">
+            ${Number(order.total || 0).toFixed(2)}
+          </p>
         </div>
       </div>
-    </div>
+    </button>
   );
-}
-
-// ----------------- Reservations list / calendar -----------------
-function ReservationsPage({ onNavigate, reservations }) {
-  const [view, setView] = useState('calendar');
-  const [selectedDate, setSelectedDate] = useState(null);
-
-  const approvedReservations = reservations.filter((r) => r.status === 'approved');
-
-  const today = new Date();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
-
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
-
-  const monthNames = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ];
-
-  const getReservationsForDate = (date) =>
-    approvedReservations.filter((r) => r.date === date);
-
-  const formatDateForCalendar = (day) => {
-    const date = new Date(currentYear, currentMonth, day);
-    return date.toISOString().split('T')[0];
-  };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-serif">Approved Reservations</h1>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setView('calendar')}
-              className={`px-6 py-2 rounded-lg transition ${
-                view === 'calendar'
-                  ? 'bg-black text-white'
-                  : 'bg-white border border-gray-300'
-              }`}
-            >
-              Calendar View
-            </button>
-            <button
-              onClick={() => setView('list')}
-              className={`px-6 py-2 rounded-lg transition ${
-                view === 'list'
-                  ? 'bg-black text-white'
-                  : 'bg-white border border-gray-300'
-              }`}
-            >
-              List View
-            </button>
-          </div>
-        </div>
-
-        {view === 'calendar' ? (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-2xl font-semibold mb-6 text-center">
-              {monthNames[currentMonth]} {currentYear}
-            </h2>
-
-            <div className="grid grid-cols-7 gap-2 mb-2">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                <div key={day} className="text-center font-semibold text-gray-600 py-2">
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-7 gap-2">
-              {[...Array(firstDayOfMonth)].map((_, i) => (
-                <div key={`empty-${i}`} className="aspect-square" />
-              ))}
-
-              {[...Array(daysInMonth)].map((_, i) => {
-                const day = i + 1;
-                const dateStr = formatDateForCalendar(day);
-                const dayReservations = getReservationsForDate(dateStr);
-                const isToday = dateStr === today.toISOString().split('T')[0];
-
-                return (
-                  <div
-                    key={day}
-                    className={`aspect-square border rounded-lg p-2 cursor-pointer transition ${
-                      isToday ? 'border-black bg-gray-50' : 'border-gray-200 hover:border-black'
-                    } ${dayReservations.length > 0 ? 'bg-pink-50' : ''}`}
-                    onClick={() =>
-                      setSelectedDate(dayReservations.length > 0 ? dateStr : null)
-                    }
-                  >
-                    <div className="font-semibold text-sm mb-1">{day}</div>
-                    {dayReservations.length > 0 && (
-                      <div className="text-xs text-gray-600">
-                        {dayReservations.length} booking
-                        {dayReservations.length > 1 ? 's' : ''}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {selectedDate && (
-              <div className="mt-8 border-t pt-6">
-                <h3 className="text-xl font-semibold mb-4">
-                  Reservations for {selectedDate}
-                </h3>
-                <div className="space-y-4">
-                  {getReservationsForDate(selectedDate).map((res) => (
-                    <div
-                      key={res.id}
-                      onClick={() => onNavigate('reservation-detail', res.id)}
-                      className="p-4 border border-gray-200 rounded-lg hover:border-black cursor-pointer transition"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-semibold text-lg">
-                            {res.customerName}
-                          </h4>
-                          <p className="text-gray-600">{res.service}</p>
-                        </div>
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                          APPROVED
-                        </span>
-                      </div>
-                      <div className="flex gap-4 text-sm text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {res.time}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          {res.location.split(',')[0]}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+    <div className="space-y-6">
+      {/* New Requests */}
+      <div>
+        <h2 className="text-[11px] font-semibold text-gray-500 mb-2 tracking-[0.18em]">
+          NEW REQUESTS
+        </h2>
+        {newRequests.length === 0 ? (
+          <p className="text-xs text-gray-400 italic">
+            No new requests yet. New online orders will appear here.
+          </p>
         ) : (
-          <div className="space-y-4">
-            {approvedReservations.map((res) => (
-              <div
-                key={res.id}
-                onClick={() => onNavigate('reservation-detail', res.id)}
-                className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md cursor-pointer transition"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-1">
-                      {res.customerName}
-                    </h3>
-                    <p className="text-gray-600">
-                      {res.service} - {res.option}
-                    </p>
-                  </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                    APPROVED
-                  </span>
-                </div>
-                <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    {res.date} at {res.time}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    {res.location.split(',')[0]}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4" />
-                    ${res.price}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          newRequests.map(renderOrderItem)
+        )}
+      </div>
+
+      {/* In Progress */}
+      <div>
+        <h2 className="text-[11px] font-semibold text-gray-500 mb-2 tracking-[0.18em]">
+          IN PROGRESS
+        </h2>
+        {activeOrders.length === 0 ? (
+          <p className="text-xs text-gray-400 italic">No active orders.</p>
+        ) : (
+          activeOrders.map(renderOrderItem)
+        )}
+      </div>
+
+      {/* Completed */}
+      <div>
+        <h2 className="text-[11px] font-semibold text-gray-500 mb-2 tracking-[0.18em]">
+          COMPLETED
+        </h2>
+        {completedOrders.length === 0 ? (
+          <p className="text-xs text-gray-400 italic">No completed orders yet.</p>
+        ) : (
+          completedOrders.map(renderOrderItem)
+        )}
+      </div>
+
+      {/* Cancelled */}
+      <div>
+        <h2 className="text-[11px] font-semibold text-gray-500 mb-2 tracking-[0.18em]">
+          CANCELLED
+        </h2>
+        {cancelledOrders.length === 0 ? (
+          <p className="text-xs text-gray-400 italic">No cancelled orders.</p>
+        ) : (
+          cancelledOrders.map(renderOrderItem)
         )}
       </div>
     </div>
   );
 }
 
-// ----------------- New Requests -----------------
-function NewRequestsPage({ onNavigate, reservations }) {
-  const pendingRequests = reservations.filter(
-    (r) => r.status === 'pending_approval'
-  );
+/* ───────────────────────────── Middle: Order Detail Panel ───────────────────────────── */
 
-  return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-serif mb-2">New Reservation Requests</h1>
-            <p className="text-gray-600">
-              Review and approve new booking requests from customers
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-3xl font-bold text-yellow-600">
-              {pendingRequests.length}
-            </p>
-            <p className="text-sm text-gray-600">Pending Approval</p>
-          </div>
-        </div>
-
-        {pendingRequests.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-600" />
-            <h2 className="text-2xl font-semibold mb-2">All caught up!</h2>
-            <p className="text-gray-600">
-              No pending reservation requests at this time.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {pendingRequests.map((request) => (
-              <div
-                key={request.id}
-                onClick={() => onNavigate('request-detail', request.id)}
-                className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md cursor-pointer transition border-l-4 border-yellow-400"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-semibold">
-                        {request.customerName}
-                      </h3>
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
-                        AWAITING APPROVAL
-                      </span>
-                    </div>
-                    <p className="text-gray-600 mb-2">
-                      {request.service} - {request.option}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Requested on {request.createdAt}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold mb-1">${request.price}</p>
-                    <p className="text-sm text-gray-600">Total</p>
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    {request.date}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    {request.time}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    {request.location.split(',')[0]}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    {request.customerPhone}
-                  </div>
-                </div>
-
-                {request.notes && (
-                  <div className="border-t pt-4">
-                    <p className="font-semibold text-sm mb-1">Customer Notes:</p>
-                    <p className="text-sm text-gray-700">{request.notes}</p>
-                  </div>
-                )}
-
-                <div className="mt-4 flex gap-3">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onNavigate('request-detail', request.id);
-                    }}
-                    className="flex-1 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition text-sm"
-                  >
-                    Review & Approve
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      window.location.href = `mailto:${request.customerEmail}`;
-                    }}
-                    className="px-4 py-2 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition text-sm"
-                  >
-                    Contact
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ----------------- Request Detail -----------------
-function RequestDetailPage({
-  requestId,
-  onNavigate,
-  reservations,
-  orders,
-  onApproveRequest,
-  chatMessages = [],
-  onSendChatMessage
+function OrderDetailPanel({
+  order,
+  onUpdateStatus,
+  onAdjustPrice,
+  onSendToCart
 }) {
-  const [showApprovalConfirm, setShowApprovalConfirm] = useState(false);
-  const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
-  const [showChat, setShowChat] = useState(false);
-  const [newMessage, setNewMessage] = useState('');
+  const [localTotal, setLocalTotal] = React.useState(order?.total ?? 0);
 
-  const request = reservations.find(r => r.id === requestId);
-
-  if (!request) {
-    return (
-      <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Request not found</h1>
-          <button
-            onClick={() => onNavigate('new-requests')}
-            className="px-6 py-2 bg-black text-white rounded-lg"
-          >
-            Back to Requests
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const handleApprove = () => {
-    onApproveRequest(request.id);
-    alert(
-      `Reservation ${request.id} has been approved and moved to Pending Orders! Customer will be notified.`
-    );
-    onNavigate('orders');
-  };
-
-  const handleDecline = () => {
-    alert(
-      `Reservation ${request.id} has been declined. Customer will be notified.`
-    );
-    onNavigate('new-requests');
-  };
-
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
-    if (onSendChatMessage) {
-      onSendChatMessage(newMessage.trim());
+  React.useEffect(() => {
+    if (order) {
+      setLocalTotal(Number(order.total || 0).toFixed(2));
     }
-    setNewMessage('');
-  };
+  }, [order]);
 
-  return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <button
-          onClick={() => onNavigate('new-requests')}
-          className="flex items-center gap-2 text-gray-600 hover:text-black mb-6"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-sm">Back to New Requests</span>
-        </button>
-
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* LEFT: request details (unchanged) */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm p-8 border-l-4 border-yellow-400">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h1 className="text-3xl font-bold mb-2">
-                    New Reservation Request
-                  </h1>
-                  <p className="text-lg text-gray-600 mb-3">
-                    Request #{request.id}
-                  </p>
-                  <span className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800">
-                    AWAITING APPROVAL
-                  </span>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-600">Requested on</p>
-                  <p className="font-semibold">{request.createdAt}</p>
-                </div>
-              </div>
-
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
-                <p className="text-sm font-semibold text-yellow-800 flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5" />
-                  This reservation requires your approval before it moves to Pending Orders
-                </p>
-              </div>
-
-              {/* customer / event / service info – same as your old code */}
-              {/* ... keep your existing content section here ... */}
-
-              <div className="border-t pt-6 flex gap-4">
-                <button
-                  onClick={() => setShowApprovalConfirm(true)}
-                  className="flex-1 py-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition text-lg flex items-center justify-center gap-2"
-                >
-                  <CheckCircle className="w-5 h-5" />
-                  Approve & Move to Orders
-                </button>
-                <button
-                  onClick={() => setShowDeclineConfirm(true)}
-                  className="px-8 py-4 border border-red-300 text-red-600 rounded-lg font-semibold hover:bg-red-50 transition text-lg"
-                >
-                  Decline
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT: shared chat UI */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Chat with Customer</h3>
-                <button
-                  onClick={() => setShowChat(!showChat)}
-                  className="text-sm text-gray-600 hover:text-black"
-                >
-                  {showChat ? 'Minimize' : 'Expand'}
-                </button>
-              </div>
-
-              {showChat ? (
-                <div>
-                  <div className="border rounded-lg mb-4 h-96 overflow-y-auto p-4 bg-gray-50">
-                    {chatMessages.length === 0 && (
-                      <p className="text-xs text-gray-500">
-                        No messages yet. Start the conversation below.
-                      </p>
-                    )}
-
-                    {chatMessages.map((msg, idx) => (
-                      <div
-                        key={msg.id || idx}
-                        className={`mb-4 ${
-                          msg.sender === 'employee' ? 'text-right' : 'text-left'
-                        }`}
-                      >
-                        <div
-                          className={`inline-block max-w-xs px-4 py-2 rounded-lg ${
-                            msg.sender === 'employee'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-200 text-gray-800'
-                          }`}
-                        >
-                          <p className="text-xs font-semibold mb-1">
-                            {msg.sender === 'employee'
-                              ? 'You'
-                              : msg.sender === 'customer'
-                              ? 'Customer'
-                              : 'User'}
-                          </p>
-                          <p className="text-sm">{msg.text}</p>
-                          <p
-                            className={`text-[10px] mt-1 ${
-                              msg.sender === 'employee'
-                                ? 'text-blue-100'
-                                : 'text-gray-500'
-                            }`}
-                          >
-                            {msg.time}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                      placeholder="Type a message..."
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                    />
-                    <button
-                      onClick={handleSendMessage}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                    >
-                      <Mail className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowChat(true)}
-                  className="w-full py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
-                >
-                  <Mail className="w-5 h-5" />
-                  Open Chat
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* approval / decline modals – keep your existing versions here */}
-        {/* ... */}
-      </div>
-    </div>
-  );
-}
-
-
-// ----------------- Reservation Detail -----------------
-function ReservationDetailPage({ reservationId, onNavigate, reservations }) {
-  const reservation = reservations.find((r) => r.id === reservationId);
-
-  if (!reservation) {
+  if (!order) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Reservation not found</h1>
-          <button
-            onClick={() => onNavigate('reservations')}
-            className="px-6 py-2 bg-black text-white rounded-lg"
-          >
-            Back to Reservations
-          </button>
-        </div>
+      <div className="h-full flex items-center justify-center text-sm text-gray-400">
+        Select an order on the left to view details.
       </div>
     );
   }
 
+  const handlePriceSave = () => {
+    const numeric = Number(localTotal);
+    if (Number.isNaN(numeric)) return;
+
+    // update the order state in EmployeeApp
+    onAdjustPrice(order.id, numeric);
+
+    // 💌 ALSO send the updated total directly back to RootApp
+    if (onSendToCart) {
+      onSendToCart(order.id, numeric);
+    }
+  };
+
+
+  const serviceOrder = isServiceOrder(order);
+
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <button
-          onClick={() => onNavigate('reservations')}
-          className="flex items-center gap-2 text-gray-600 hover:text-black mb-6"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-sm">Back to Reservations</span>
-        </button>
+    <div className="h-full flex flex-col">
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <h1 className="text-xl font-semibold mb-1">Order #{order.id}</h1>
+          <p className="text-xs text-gray-500">
+            {order.customerName || 'Online Customer'} •{' '}
+            {order.customerEmail || 'no email'}
+          </p>
+        </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-8">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">
-                Reservation #{reservation.id}
-              </h1>
-              <span
-                className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${
-                  reservation.status === 'approved'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}
-              >
-                {reservation.status === 'approved' ? 'APPROVED' : 'PENDING APPROVAL'}
-              </span>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Created on</p>
-              <p className="font-semibold">{reservation.createdAt}</p>
-            </div>
-          </div>
+        <div className="flex flex-col items-end gap-2">
+          <select
+            value={order.status || 'pending'}
+            onChange={(e) => onUpdateStatus(order.id, e.target.value)}
+            className="border border-gray-300 text-xs rounded px-2 py-1"
+          >
+            <option value="pending">Pending</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
 
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  Customer Information
-                </h2>
-                <div className="space-y-2 text-gray-700">
-                  <p>
-                    <span className="font-semibold">Name:</span>{' '}
-                    {reservation.customerName}
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    <a
-                      href={`mailto:${reservation.customerEmail}`}
-                      className="hover:text-black"
-                    >
-                      {reservation.customerEmail}
-                    </a>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    <a
-                      href={`tel:${reservation.customerPhone}`}
-                      className="hover:text-black"
-                    >
-                      {reservation.customerPhone}
-                    </a>
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
-                  Event Details
-                </h2>
-                <div className="space-y-2 text-gray-700">
-                  <p>
-                    <span className="font-semibold">Date:</span> {reservation.date}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Time:</span> {reservation.time}
-                  </p>
-                  <p className="flex items-start gap-2">
-                    <MapPin className="w-4 h-4 mt-1 flex-shrink-0" />
-                    <span>{reservation.location}</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-semibold mb-3">Service Information</h2>
-                <div className="space-y-2 text-gray-700">
-                  <p>
-                    <span className="font-semibold">Service:</span>{' '}
-                    {reservation.service}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Option:</span>{' '}
-                    {reservation.option}
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4" />
-                    <span className="text-xl font-bold">${reservation.price}</span>
-                  </p>
-                </div>
-              </div>
-
-              {reservation.notes && (
-                <div>
-                  <h2 className="text-lg font-semibold mb-3">Special Notes</h2>
-                  <p className="text-gray-700 bg-gray-50 p-4 rounded-lg">
-                    {reservation.notes}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="border-t pt-6 flex gap-4">
-            <button className="flex-1 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition">
-              Mark as Completed
-            </button>
-            <button className="flex-1 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition">
-              Contact Customer
-            </button>
-            <button className="px-6 py-3 border border-red-300 text-red-600 rounded-lg font-semibold hover:bg-red-50 transition">
-              Cancel
-            </button>
+          <div className="text-right text-xs text-gray-500">
+            {order.orderDate && <div>Order date: {order.orderDate}</div>}
+            {order.pickupDate && <div>Pickup: {order.pickupDate}</div>}
           </div>
         </div>
       </div>
-    </div>
-  );
-}
 
-// ----------------- Orders list -----------------
-function OrdersPage({ onNavigate, orders }) {
-  const [filterStatus, setFilterStatus] = useState('all');
-
-  const filteredOrders =
-    filterStatus === 'all'
-      ? orders
-      : orders.filter((o) => o.status === filterStatus);
-
-  return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-serif">Orders</h1>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setFilterStatus('all')}
-              className={`px-4 py-2 rounded-lg transition ${
-                filterStatus === 'all'
-                  ? 'bg-black text-white'
-                  : 'bg-white border border-gray-300'
-              }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setFilterStatus('pending')}
-              className={`px-4 py-2 rounded-lg transition ${
-                filterStatus === 'pending'
-                  ? 'bg-black text-white'
-                  : 'bg-white border border-gray-300'
-              }`}
-            >
-              Pending
-            </button>
-            <button
-              onClick={() => setFilterStatus('ready')}
-              className={`px-4 py-2 rounded-lg transition ${
-                filterStatus === 'ready'
-                  ? 'bg-black text-white'
-                  : 'bg-white border border-gray-300'
-              }`}
-            >
-              Ready
-            </button>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {filteredOrders.map((order) => (
+      {/* Items */}
+      <div className="bg-gray-50 rounded-lg p-4 mb-4">
+        <h2 className="text-xs font-semibold mb-2 tracking-wide text-gray-600">
+          ITEMS
+        </h2>
+        <div className="space-y-2">
+          {order.items?.map((item, idx) => (
             <div
-              key={order.id}
-              onClick={() => onNavigate('order-detail', order.id)}
-              className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md cursor-pointer transition"
+              key={idx}
+              className="flex justify-between text-sm border-b pb-2 last:border-b-0 last:pb-0"
             >
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-xl font-semibold mb-1">
-                    Order #{order.id}
-                  </h3>
-                  <p className="text-gray-600">{order.customerName}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold mb-1">${order.total}</p>
-                  <span
-                    className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                      order.status === 'ready'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}
-                  >
-                    {order.status.toUpperCase()}
-                  </span>
-                </div>
+              <div>
+                <p className="font-medium">{item.name}</p>
+                {item.variantName && (
+                  <p className="text-xs text-gray-500">
+                    Option: {item.variantName}
+                  </p>
+                )}
+                {item.notes && (
+                  <p className="text-xs text-gray-400">{item.notes}</p>
+                )}
               </div>
-
-              <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
-                <div>
-                  <p className="font-semibold text-gray-800 mb-1">Order Date</p>
-                  <p>{order.orderDate}</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-800 mb-1">Pickup Date</p>
-                  <p>{order.pickupDate}</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-800 mb-1">Status</p>
-                  <span
-                    className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
-                      order.status === 'ready'
-                        ? 'bg-green-100 text-green-800'
-                        : order.status === 'confirmed'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}
-                  >
-                    {order.status === 'pending'
-                      ? 'EDITING'
-                      : order.status === 'confirmed'
-                      ? 'PREPARING'
-                      : 'READY'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="border-t pt-4">
-                <p className="font-semibold text-sm mb-2">Order Items:</p>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  {order.items.map((item, idx) => (
-                    <li key={idx}>
-                      {item.quantity}x {item.name} - ${item.price * item.quantity}
-                    </li>
-                  ))}
-                </ul>
+              <div className="text-right text-xs text-gray-600">
+                <div>Qty: {item.quantity}</div>
+                {typeof item.pricePerUnit === 'number' && (
+                  <>
+                    <div>${item.pricePerUnit.toFixed(2)} each</div>
+                    <div className="font-semibold">
+                      ${(item.pricePerUnit * item.quantity).toFixed(2)}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Service info / notes */}
+      <div className="bg-white border rounded-lg p-4 mb-4 text-sm">
+        <h2 className="text-xs font-semibold mb-2 tracking-wide text-gray-600">
+          EVENT / SERVICE DETAILS
+        </h2>
+        {serviceOrder ? (
+          <p className="text-gray-700 mb-2">
+            This appears to be a service booking (event). Confirm event time,
+            location, and final pricing with the customer via chat.
+          </p>
+        ) : (
+          <p className="text-gray-700 mb-2">
+            Prepackaged order. Use chat to confirm pickup timing or special
+            instructions.
+          </p>
+        )}
+
+        {order.notes && (
+          <p className="text-xs text-gray-500">
+            Customer note: {order.notes}
+          </p>
+        )}
+      </div>
+
+      {/* Price adjust */}
+      <div className="bg-white border rounded-lg p-4 mb-4">
+        <h2 className="text-xs font-semibold mb-2 tracking-wide text-gray-600">
+          PRICE & TOTAL
+        </h2>
+        <div className="flex items-center gap-3 mb-2">
+          <label className="text-xs text-gray-500">
+            Adjust total price (for services, discounts, etc.):
+          </label>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center border rounded px-2 py-1">
+            <span className="text-sm text-gray-500 mr-1">$</span>
+            <input
+              type="number"
+              step="0.01"
+              value={localTotal}
+              onChange={(e) => setLocalTotal(e.target.value)}
+              className="w-24 text-sm outline-none"
+            />
+          </div>
+          <button
+            onClick={handlePriceSave}
+            className="text-xs px-3 py-1 rounded bg-black text-white hover:bg-gray-800"
+          >
+            Save total
+          </button>
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Current stored total:{' '}
+          <span className="font-semibold">
+            ${Number(order.total || 0).toFixed(2)}
+          </span>
+        </p>
+      </div>
+
+      <div className="flex-1" />
     </div>
   );
 }
 
-// ----------------- Order Detail -----------------
+/* ───────────────────────────── Right: Employee Chat Panel ───────────────────────────── */
 
-function OrderDetailPage({
-  orderId,
-  onNavigate,
-  orders,
-  onUpdateOrderStatus,
-  onConfirmOrder,
-  chatMessages = [],
-  onSendChatMessage
-}) {
-  const order = orders.find((o) => o.id === orderId);
+function EmployeeChatPanel({ chatMessages, onSend }) {
+  const [text, setText] = useState('');
 
-  const [isChatOpen, setIsChatOpen] = React.useState(false);
-  const [draft, setDraft] = React.useState('');
-
-  const handleSend = () => {
-    if (!draft.trim() || !onSendChatMessage) return;
-    onSendChatMessage(draft.trim());
-    setDraft('');
-    setIsChatOpen(true);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!text.trim()) return;
+    onSend(text);
+    setText('');
   };
 
-  if (!order) {
+  return (
+    <div className="flex flex-col h-full border-l border-gray-200">
+      <div className="px-4 py-3 border-b bg-white flex items-center gap-2">
+        <MessageCircle className="w-4 h-4" />
+        <span className="text-xs font-semibold tracking-wide">
+          CUSTOMER CHAT
+        </span>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
+        {chatMessages.length === 0 ? (
+          <p className="text-xs text-gray-400 italic">
+            No messages yet. When a customer logs in and uses the chat widget,
+            their messages will appear here.
+          </p>
+        ) : (
+          chatMessages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex ${
+                msg.sender === 'employee' ? 'justify-end' : 'justify-start'
+              }`}
+            >
+              <div
+                className={`max-w-[75%] rounded-2xl px-3 py-2 text-xs ${
+                  msg.sender === 'employee'
+                    ? 'bg-black text-white rounded-br-sm'
+                    : 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm'
+                }`}
+              >
+                <p className="whitespace-pre-line">{msg.text}</p>
+                <p className="mt-1 text-[10px] opacity-70 text-right">
+                  {msg.sender === 'employee' ? 'You' : 'Customer'} • {msg.time}
+                </p>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <form
+        onSubmit={handleSubmit}
+        className="p-3 border-t bg-white flex items-center gap-2"
+      >
+        <input
+          type="text"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Type a message to the customer…"
+          className="flex-1 text-xs border border-gray-300 rounded-full px-3 py-2 outline-none focus:ring-1 focus:ring-black"
+        />
+        <button
+          type="submit"
+          className="text-xs px-3 py-2 rounded-full bg-black text-white hover:bg-gray-800"
+        >
+          Send
+        </button>
+      </form>
+    </div>
+  );
+}
+
+/* ───────────────────────────── Calendar View (Reservations + Orders) ───────────────────────────── */
+
+function CalendarPanel({ reservations, orders, onSelectOrderFromCalendar }) {
+  // Build a combined list of "events" from reservations + orders
+  const events = [];
+
+  // Reservations -> events
+  reservations.forEach((r) => {
+    if (!r.date) return;
+    events.push({
+      id: `RES-${r.id}`,
+      type: 'reservation',
+      date: r.date,
+      time: r.time || '',
+      title: r.service || 'Reservation',
+      subtitle: r.customerName || '',
+      location: r.location || '',
+      notes: r.notes || '',
+      orderId: null // no direct order
+    });
+  });
+
+  // Orders -> events (mostly for service-ish orders or pickup)
+  orders.forEach((o) => {
+    const date = o.pickupDate || o.orderDate;
+    if (!date) return;
+    const serviceLike = isServiceOrder(o);
+    events.push({
+      id: `ORD-${o.id}`,
+      type: serviceLike ? 'service-order' : 'order',
+      date,
+      time: o.eventTime || '',
+      title: serviceLike ? 'Service Order' : 'Prepackaged Order',
+      subtitle: o.customerName || 'Online Customer',
+      location: o.eventLocation || '',
+      notes: o.notes || '',
+      orderId: o.id
+    });
+  });
+
+  // Sort by date + time
+  events.sort((a, b) => {
+    const dA = new Date(a.date || '');
+    const dB = new Date(b.date || '');
+    if (dA.getTime() !== dB.getTime()) return dA - dB;
+    if (a.time && b.time) return a.time.localeCompare(b.time);
+    return 0;
+  });
+
+  // Group by date
+  const groupedByDate = events.reduce((acc, ev) => {
+    if (!acc[ev.date]) acc[ev.date] = [];
+    acc[ev.date].push(ev);
+    return acc;
+  }, {});
+
+  const dateKeys = Object.keys(groupedByDate).sort(
+    (a, b) => new Date(a) - new Date(b)
+  );
+
+  if (events.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-24">
-        <div className="max-w-6xl mx-auto px-4 pb-10">
-          <button
-            onClick={() => onNavigate('orders')}
-            className="flex items-center gap-2 text-gray-600 hover:text-black mb-6"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="text-sm">Back to Orders</span>
-          </button>
-          <div className="bg-white rounded-xl p-6 shadow-sm">
-            <p className="text-gray-600">Order not found.</p>
-          </div>
-        </div>
+      <div className="h-full flex items-center justify-center text-sm text-gray-400">
+        No events yet. When reservations or service orders are added, they'll show here.
       </div>
     );
   }
 
-  const totalFromItems =
-    order.items?.reduce((sum, item) => {
-      const unitPrice =
-        item.price !== undefined && item.price !== null
-          ? item.price
-          : item.pricePerUnit || 0;
-      return sum + unitPrice * (item.quantity || 1);
-    }, 0) || 0;
-
-  const hasServiceItems =
-    order.items?.some((item) => {
-      const unitPrice =
-        item.price !== undefined && item.price !== null
-          ? item.price
-          : item.pricePerUnit || 0;
-      return unitPrice === 0;
-    }) || false;
-
   return (
-    <div className="min-h-screen bg-gray-50 pt-24">
-      <div className="max-w-6xl mx-auto px-4 pb-10">
-        <button
-          onClick={() => onNavigate('orders')}
-          className="flex items-center gap-2 text-gray-600 hover:text-black mb-6"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-sm">Back to Orders</span>
-        </button>
+    <div className="h-full overflow-y-auto">
+      <div className="flex items-center gap-2 mb-4">
+        <CalendarIcon className="w-4 h-4 text-gray-600" />
+        <h2 className="text-xs font-semibold tracking-[0.14em] text-gray-600">
+          CALENDAR VIEW — UPCOMING EVENTS
+        </h2>
+      </div>
 
-        <div className="grid lg:grid-cols-[2fr,1.1fr] gap-6">
-          {/* LEFT: order details */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h1 className="text-2xl font-semibold mb-1">
-                  Order #{order.id?.slice(0, 8)}
-                </h1>
-                <p className="text-sm text-gray-500">
-                  Placed:{' '}
-                  {order.orderDate
-                    ? new Date(order.orderDate).toLocaleString()
-                    : '—'}
-                </p>
-                {order.pickupDate && (
-                  <p className="text-sm text-gray-500">
-                    Pickup / Event date: {order.pickupDate}
-                  </p>
-                )}
-              </div>
-
-              <div className="text-right text-xs space-y-2">
-                <span className="inline-block uppercase tracking-wide px-2 py-1 rounded-full bg-gray-100">
-                  {order.status || 'PENDING'}
-                </span>
-                <div>
-                  <label className="block mb-1 text-gray-500">
-                    Update status
-                  </label>
-                  <select
-                    value={order.status}
-                    onChange={(e) =>
-                      onUpdateOrderStatus(order.id, e.target.value)
+      <div className="space-y-4">
+        {dateKeys.map((date) => (
+          <div key={date} className="border border-gray-100 rounded-xl bg-white">
+            <div className="px-4 py-2 border-b bg-gray-50 flex items-center gap-2">
+              <CalendarIcon className="w-3 h-3 text-gray-500" />
+              <p className="text-xs font-semibold text-gray-700">{date}</p>
+            </div>
+            <div className="p-3 space-y-2">
+              {groupedByDate[date].map((ev) => (
+                <button
+                  key={ev.id}
+                  type="button"
+                  onClick={() => {
+                    if (ev.orderId && onSelectOrderFromCalendar) {
+                      onSelectOrderFromCalendar(ev.orderId);
                     }
-                    className="border rounded px-2 py-1 text-xs"
-                  >
-                    <option value="pending">PENDING</option>
-                    <option value="NEW">NEW</option>
-                    <option value="IN_PROGRESS">IN_PROGRESS</option>
-                    <option value="COMPLETED">COMPLETED</option>
-                    <option value="CANCELLED">CANCELLED</option>
-                    <option value="confirmed">CONFIRMED</option>
-                  </select>
-                </div>
-                {onConfirmOrder && (
-                  <button
-                    onClick={() => onConfirmOrder(order.id)}
-                    className="mt-1 w-full px-2 py-1 border border-black rounded text-[11px] hover:bg-black hover:text-white"
-                  >
-                    Convert to Reservation
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Customer info */}
-            <div className="mb-6">
-              <h2 className="text-sm font-semibold mb-2 text-gray-700">
-                Customer
-              </h2>
-              <p className="text-sm text-gray-800">
-                {order.customerName || 'Online Customer'}
-              </p>
-              {order.customerEmail && (
-                <p className="text-sm text-gray-500">{order.customerEmail}</p>
-              )}
-            </div>
-
-            {/* Items */}
-            <div className="mb-6">
-              <h2 className="text-sm font-semibold mb-3 text-gray-700">
-                Items in this order
-              </h2>
-              <div className="space-y-3">
-                {order.items?.map((item, idx) => {
-                  const unitPrice =
-                    item.price !== undefined && item.price !== null
-                      ? item.price
-                      : item.pricePerUnit || 0;
-                  const lineTotal = unitPrice * (item.quantity || 1);
-                  const isServiceItem = unitPrice === 0;
-
-                  return (
-                    <div
-                      key={idx}
-                      className="flex justify-between items-start border-b pb-3 last:border-b-0 last:pb-0"
+                  }}
+                  className={`w-full text-left rounded-lg border border-gray-200 px-3 py-2 text-xs flex flex-col gap-1 hover:bg-gray-50 ${
+                    ev.orderId ? 'cursor-pointer' : 'cursor-default'
+                  }`}
+                >
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold">{ev.title}</span>
+                    <span
+                      className={`px-2 py-[2px] rounded-full text-[10px] uppercase tracking-wide ${
+                        ev.type === 'reservation'
+                          ? 'bg-pink-50 text-pink-700'
+                          : ev.type === 'service-order'
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}
                     >
-                      <div>
-                        <p className="font-medium text-sm">{item.name}</p>
-                        {item.variantName && (
-                          <p className="text-xs text-gray-500">
-                            Option: {item.variantName}
-                          </p>
-                        )}
-                        {item.notes && (
-                          <p className="text-xs text-gray-500">
-                            Notes: {item.notes}
-                          </p>
-                        )}
-                        {isServiceItem && (
-                          <p className="mt-1 text-[11px] inline-flex items-center px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-                            Service item – price to be finalized with customer
-                          </p>
-                        )}
-                      </div>
-                      <div className="text-right text-xs text-gray-700">
-                        {!isServiceItem && (
-                          <>
-                            <div>
-                              ${unitPrice.toFixed(2)} × {item.quantity || 1}
-                            </div>
-                            <div className="font-semibold">
-                              ${lineTotal.toFixed(2)}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Totals */}
-            <div className="mt-4 border-t pt-4 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Total from priced items</span>
-                <span className="font-semibold">
-                  ${totalFromItems.toFixed(2)}
-                </span>
-              </div>
-              {hasServiceItems && (
-                <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                  This order contains event / service items with custom pricing.
-                  Use the chat to confirm details and finalize pricing.
-                </p>
-              )}
-              {order.notes && (
-                <p className="mt-3 text-xs text-gray-600">
-                  Customer note: {order.notes}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* RIGHT: chat panel */}
-          <div className="bg-white rounded-xl p-6 shadow-sm flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-gray-800">
-                Chat with Customer
-              </h2>
-              <button
-                className="text-xs text-gray-500"
-                onClick={() => setIsChatOpen((v) => !v)}
-              >
-                {isChatOpen ? 'Collapse' : 'Expand'}
-              </button>
-            </div>
-
-            {!isChatOpen ? (
-              <button
-                className="w-full py-3 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
-                onClick={() => setIsChatOpen(true)}
-              >
-                Open Chat
-              </button>
-            ) : (
-              <>
-                <div className="flex-1 border rounded-lg mb-3 overflow-y-auto max-h-72 p-3 space-y-2 text-xs">
-                  {chatMessages.length === 0 ? (
-                    <p className="text-gray-400">
-                      No messages yet. Start the conversation with the customer.
-                    </p>
-                  ) : (
-                    chatMessages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${
-                          msg.sender === 'employee'
-                            ? 'justify-end'
-                            : 'justify-start'
-                        }`}
-                      >
-                        <div
-                          className={`px-3 py-2 rounded-2xl max-w-[80%] ${
-                            msg.sender === 'employee'
-                              ? 'bg-blue-600 text-white rounded-br-sm'
-                              : 'bg-gray-100 text-gray-800 rounded-bl-sm'
-                          }`}
-                        >
-                          <div className="text-[10px] opacity-70 mb-0.5">
-                            {msg.sender === 'employee'
-                              ? 'You'
-                              : 'Customer'}
-                            {msg.time ? ` • ${msg.time}` : ''}
-                          </div>
-                          <div className="text-[11px]">{msg.text}</div>
-                        </div>
-                      </div>
-                    ))
+                      {ev.type === 'reservation'
+                        ? 'Reservation'
+                        : ev.type === 'service-order'
+                        ? 'Service Order'
+                        : 'Order'}
+                    </span>
+                  </div>
+                  {ev.subtitle && (
+                    <p className="text-[11px] text-gray-600">{ev.subtitle}</p>
                   )}
-                </div>
-
-                <div className="flex items-center gap-2 mt-auto">
-                  <input
-                    type="text"
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSend();
-                      }
-                    }}
-                    className="flex-1 border rounded-lg px-3 py-2 text-xs"
-                    placeholder="Type a message to the customer..."
-                  />
-                  <button
-                    onClick={handleSend}
-                    className="px-3 py-2 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700"
-                  >
-                    Send
-                  </button>
-                </div>
-              </>
-            )}
+                  <div className="flex items-center gap-3 text-[11px] text-gray-500">
+                    {ev.time && (
+                      <span className="inline-flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {ev.time}
+                      </span>
+                    )}
+                    {ev.location && (
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {ev.location}
+                      </span>
+                    )}
+                  </div>
+                  {ev.notes && (
+                    <p className="text-[11px] text-gray-400">
+                      Notes: {ev.notes}
+                    </p>
+                  )}
+                  {ev.orderId && (
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      Click to open order #{ev.orderId} details.
+                    </p>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   );
 }
 
-
-
-
-
-
-
-// ----------------- MAIN EMPLOYEE APP WRAPPER -----------------
-
-
-
-
-
+/* ───────────────────────────── Main EmployeeApp ───────────────────────────── */
 
 export default function EmployeeApp({
   reservations = [],
@@ -1467,131 +596,97 @@ export default function EmployeeApp({
   orders = [],
   setOrders = () => {},
   chatMessages = [],
-  onSendChatMessage = () => {}
+  onSendChatMessage = () => {},
+  onSendOrderToCart = () => {}
 }) {
-  const [currentPage, setCurrentPage] = React.useState('dashboard');
-  const [selectedId, setSelectedId] = React.useState(null);
 
-  const handleNavigate = (page, id = null) => {
-    setCurrentPage(page);
-    setSelectedId(id);
-    window.scrollTo(0, 0);
-  };
 
-  const handleApproveRequest = (requestId) => {
-    const request = reservations.find(r => r.id === requestId);
-    if (!request) return;
+  const [viewMode, setViewMode] = useState('orders'); // 'orders' | 'calendar'
+  const [selectedOrderId, setSelectedOrderId] = useState(orders[0]?.id || null);
 
-    const newOrder = {
-      id: `ORD${String(orders.length + 1).padStart(3, '0')}`,
-      customerName: request.customerName,
-      customerEmail: request.customerEmail,
-      items: [
-        { name: `${request.service} - ${request.option}`, quantity: 1, price: request.price }
-      ],
-      total: request.price,
-      orderDate: new Date().toISOString().split('T')[0],
-      pickupDate: request.date,
-      status: 'pending',
-      notes: request.notes,
-      eventTime: request.time,
-      eventLocation: request.location,
-      originalRequestId: request.id,
-      service: request.service,
-      option: request.option
-    };
+  const selectedOrder =
+    orders.find((o) => o.id === selectedOrderId) || orders[0] || null;
 
-    setOrders([...orders, newOrder]);
-    setReservations(reservations.filter(r => r.id !== requestId));
-  };
-
-  const handleConfirmOrder = (orderId) => {
-    const order = orders.find(o => o.id === orderId);
-    if (!order) return;
-
-    const newReservation = {
-      id: order.originalRequestId || `RES${String(reservations.length + 1).padStart(3, '0')}`,
-      customerName: order.customerName,
-      customerEmail: order.customerEmail,
-      customerPhone: order.customerPhone || '(765) 476-1558',
-      service: order.service || order.items[0].name.split(' - ')[0],
-      option: order.option || order.items[0].name.split(' - ')[1] || 'Standard',
-      date: order.pickupDate,
-      time: order.eventTime,
-      location: order.eventLocation,
-      price: order.total,
-      status: 'approved',
-      notes: order.notes,
-      createdAt: order.orderDate
-    };
-
-    setOrders(orders.map(o => o.id === orderId ? { ...o, status: 'confirmed' } : o));
-    setReservations([...reservations, newReservation]);
+  const handleSelectOrder = (order) => {
+    setSelectedOrderId(order.id);
   };
 
   const handleUpdateOrderStatus = (orderId, newStatus) => {
-    setOrders(orders.map(order =>
-      order.id === orderId ? { ...order, status: newStatus } : order
-    ));
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+    );
+  };
+
+  const handleAdjustPrice = (orderId, newTotal) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, total: newTotal } : o))
+    );
+  };
+
+  // 🔗 when clicking a calendar event that corresponds to an order,
+  // jump to Orders view and open its detail
+  const handleSelectOrderFromCalendar = (orderId) => {
+    setSelectedOrderId(orderId);
+    setViewMode('orders');
   };
 
   return (
-    <div>
-      <Navigation onNavigate={handleNavigate} />
-      {currentPage === 'dashboard' && (
-        <DashboardPage
-          onNavigate={handleNavigate}
-          reservations={reservations}
-          orders={orders}
-        />
-      )}
-      {currentPage === 'new-requests' && (
-        <NewRequestsPage
-          onNavigate={handleNavigate}
-          reservations={reservations}
-        />
-      )}
-      {currentPage === 'request-detail' && (
-        <RequestDetailPage
-          requestId={selectedId}
-          onNavigate={handleNavigate}
-          reservations={reservations}
-          orders={orders}
-          onApproveRequest={handleApproveRequest}
-          chatMessages={chatMessages}
-          onSendChatMessage={onSendChatMessage}
-        />
-      )}
-      {currentPage === 'reservations' && (
-        <ReservationsPage
-          onNavigate={handleNavigate}
-          reservations={reservations}
-        />
-      )}
-      {currentPage === 'reservation-detail' && (
-        <ReservationDetailPage
-          reservationId={selectedId}
-          onNavigate={handleNavigate}
-          reservations={reservations}
-        />
-      )}
-      {currentPage === 'orders' && (
-        <OrdersPage
-          onNavigate={handleNavigate}
-          orders={orders}
-        />
-      )}
-      {currentPage === 'order-detail' && (
-        <OrderDetailPage
-          orderId={selectedId}
-          onNavigate={handleNavigate}
-          orders={orders}
-          onUpdateOrderStatus={handleUpdateOrderStatus}
-          onConfirmOrder={handleConfirmOrder}
-          chatMessages={chatMessages}
-          onSendChatMessage={onSendChatMessage}
-        />
-      )}
+    <div className="min-h-screen bg-gray-50">
+      <EmployeeNavigation viewMode={viewMode} onChangeView={setViewMode} />
+
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        {viewMode === 'orders' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-[0.8fr,1.2fr,1fr] gap-6 min-h-[70vh]">
+            {/* LEFT: lists */}
+            <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
+              <OrdersColumn
+                orders={orders}
+                selectedOrderId={selectedOrderId}
+                onSelectOrder={handleSelectOrder}
+              />
+            </div>
+
+            {/* MIDDLE: detail */}
+            <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
+              <OrderDetailPanel
+                order={selectedOrder}
+                onUpdateStatus={handleUpdateOrderStatus}
+                onAdjustPrice={handleAdjustPrice}
+                onSendToCart={onSendOrderToCart}
+              />
+
+            </div>
+
+            {/* RIGHT: chat */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <EmployeeChatPanel
+                chatMessages={chatMessages}
+                onSend={(text) => onSendChatMessage(text)}
+              />
+            </div>
+          </div>
+        ) : (
+          // Calendar view
+          <div className="grid grid-cols-1 lg:grid-cols-[1.4fr,1fr] gap-6 min-h-[70vh]">
+            {/* LEFT: calendar */}
+            <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
+              <CalendarPanel
+                reservations={reservations}
+                orders={orders}
+                onSelectOrderFromCalendar={handleSelectOrderFromCalendar}
+              />
+            </div>
+
+            {/* RIGHT: chat stays the same */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <EmployeeChatPanel
+                chatMessages={chatMessages}
+                onSend={(text) => onSendChatMessage(text)}
+              />
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

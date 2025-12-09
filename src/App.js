@@ -95,9 +95,28 @@ const services = [
 function CustomerChatWidget({ isLoggedIn, messages = [], onSend }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [text, setText] = React.useState('');
+  const [hasNewMessage, setHasNewMessage] = React.useState(false);
 
-  // 🔑 Only show chat widget if user is logged in
-  if (!isLoggedIn) return null;
+  React.useEffect(() => {
+  if (messages.length === 0) return;
+
+  const last = messages[messages.length - 1];
+
+  // Employee messages should trigger notification
+  const isEmployeeMessage =
+    last.sender &&
+    ["employee", "staff", "admin"].includes(last.sender.toLowerCase());
+
+  if (!isOpen && isEmployeeMessage) {
+    setHasNewMessage(true);
+  }
+}, [messages, isOpen]);
+
+
+  const openChat = () => {
+    setIsOpen(true);
+    setHasNewMessage(false);
+  };
 
   const handleSend = () => {
     if (!text.trim()) return;
@@ -105,20 +124,21 @@ function CustomerChatWidget({ isLoggedIn, messages = [], onSend }) {
     setText('');
   };
 
+  if (!isLoggedIn) return null;
+
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {isOpen ? (
         <div className="w-80 bg-white shadow-xl rounded-lg border border-gray-200 flex flex-col">
+          {/* header */}
           <div className="px-4 py-2 border-b flex justify-between items-center">
             <span className="text-sm font-semibold">Chat with Luxe Staff</span>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-gray-500 hover:text-black"
-            >
+            <button onClick={() => setIsOpen(false)} className="text-gray-500 hover:text-black">
               <X className="w-4 h-4" />
             </button>
           </div>
 
+          {/* messages */}
           <div className="p-3 h-64 overflow-y-auto space-y-2 text-sm">
             {messages.length === 0 && (
               <p className="text-gray-400 text-center mt-4 text-xs">
@@ -126,57 +146,46 @@ function CustomerChatWidget({ isLoggedIn, messages = [], onSend }) {
               </p>
             )}
             {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${
+              <div key={msg.id} className={`flex ${msg.sender === 'customer' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[75%] px-3 py-2 rounded-lg text-xs ${
                   msg.sender === 'customer'
-                    ? 'justify-end'
-                    : 'justify-start'
-                }`}
-              >
-                <div
-                  className={`max-w-[75%] px-3 py-2 rounded-lg text-xs ${
-                    msg.sender === 'customer'
-                      ? 'bg-black text-white'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}
-                >
+                    ? 'bg-black text-white'
+                    : 'bg-gray-100 text-gray-800'
+                }`}>
                   <div>{msg.text}</div>
-                  <div className="mt-1 text-[10px] opacity-70">
-                    {msg.time}
-                  </div>
+                  <div className="mt-1 text-[10px] opacity-70">{msg.time}</div>
                 </div>
               </div>
             ))}
           </div>
 
+          {/* input */}
           <div className="border-t px-3 py-2 flex gap-2">
             <input
-              className="flex-1 text-xs px-2 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-black"
+              className="flex-1 text-xs px-2 py-2 border rounded-lg"
               placeholder="Type a message..."
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             />
-            <button
-              onClick={handleSend}
-              className="px-3 py-2 bg-black text-white rounded-lg text-xs"
-            >
+            <button onClick={handleSend} className="px-3 py-2 bg-black text-white rounded-lg text-xs">
               Send
             </button>
           </div>
         </div>
       ) : (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="px-4 py-3 bg-black text-white rounded-full shadow-lg text-xs"
-        >
+        <button onClick={openChat} className="relative px-4 py-3 bg-black text-white rounded-full shadow-lg text-xs">
           Chat with staff
+
+          {hasNewMessage && (
+            <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full"></span>
+          )}
         </button>
       )}
     </div>
   );
 }
+
 
 
 // ----------------- Info drawer -----------------
@@ -286,6 +295,9 @@ function InfoDrawer({ isOpen, onClose }) {
     </>
   );
 }
+
+
+
 
 // ----------------- Navigation (shows cart count) -----------------
 function Navigation({ cartCount = 0, isLoggedIn = false}) {
@@ -783,7 +795,7 @@ function ServicesPage() {
 function ServiceDetailPage({ onAddToCart }) {
   const { serviceId } = useParams();
   const navigate = useNavigate();
-  const [selectedOption, setSelectedOption] = useState(null);
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState(null);
 
   const service = services.find((s) => s.id === serviceId);
 
@@ -791,31 +803,32 @@ function ServiceDetailPage({ onAddToCart }) {
     return <div className="pt-20 text-center">Service not found</div>;
   }
 
-  const handleAddServiceToCart = () => {
-    if (selectedOption === null) {
+  const handleAddClick = () => {
+    if (selectedOptionIndex === null) {
       alert('Please select an option first.');
       return;
     }
 
-    const option = service.options[selectedOption];
+    const option = service.options[selectedOptionIndex];
 
-    const cartItem = {
-      productId: `service-${service.id}`,
-      variantId: option.name,
+    const itemForCart = {
+      productId: service.id,
       name: service.name,
+      image: service.image,
+      quantity: 1,
       variantName: option.name,
+      
       pricePerUnit:
         typeof option.price === 'number' ? option.price : 0,
-      quantity: 1,
-      image: service.image,
-      notes: option.details || ''
+      notes:
+        'Event service booking — staff will contact you via chat to confirm exact details and final price.',
+      kind: 'service'
     };
 
     if (onAddToCart) {
-      onAddToCart(cartItem);
+      onAddToCart(itemForCart);
     }
 
-    // Optional: send them straight to the cart
     navigate('/cart');
   };
 
@@ -844,22 +857,17 @@ function ServiceDetailPage({ onAddToCart }) {
           {service.options.map((option, index) => (
             <div
               key={index}
-              onClick={() => setSelectedOption(index)}
+              onClick={() => setSelectedOptionIndex(index)}
               className="bg-white rounded-lg p-6 flex justify-between items-center cursor-pointer hover:border-2 hover:border-black transition"
             >
               <div>
-                <h3 className="text-xl font-semibold mb-1">
-                  {option.name}
-                </h3>
-                <p className="text-gray-600 text-sm mb-2">
-                  {option.details}
-                </p>
+                <h3 className="text-xl font-semibold mb-1">{option.name}</h3>
+                <p className="text-gray-600 text-sm mb-2">{option.details}</p>
                 <div className="flex gap-2 text-gray-700">
                   <span>
-                    $
                     {typeof option.price === 'number'
-                      ? option.price + '.00'
-                      : option.price}
+                      ? `$${option.price.toFixed(2)}`
+                      : 'Price varies'}
                   </span>
                   <span>•</span>
                   <span>{option.duration}</span>
@@ -867,7 +875,7 @@ function ServiceDetailPage({ onAddToCart }) {
               </div>
               <div
                 className={`w-6 h-6 rounded-full border-2 ${
-                  selectedOption === index
+                  selectedOptionIndex === index
                     ? 'border-black bg-black'
                     : 'border-gray-300'
                 }`}
@@ -877,16 +885,18 @@ function ServiceDetailPage({ onAddToCart }) {
         </div>
 
         <button
-          onClick={handleAddServiceToCart}
+          onClick={handleAddClick}
           className="w-full py-4 bg-black text-white text-lg font-semibold rounded-lg hover:bg-gray-800 transition"
         >
-          Add
+          Add to cart
         </button>
       </div>
       <Footer />
     </div>
   );
 }
+
+
 
 
 // ----------------- Cart page -----------------
@@ -1263,13 +1273,16 @@ function EmployeePage() {
 }
 
 // ----------------- Footer -----------------
+
 function Footer() {
   const [email, setEmail] = useState('');
+
 
   const handleSubmit = () => {
     alert('Thanks for subscribing!');
     setEmail('');
   };
+
 
   return (
     <footer className="bg-black text-white py-16 px-4">
@@ -1286,8 +1299,8 @@ function Footer() {
           </div>
           <div>
             <h3 className="text-lg mb-4">Delivery and Pick up Hours</h3>
-            <p className="text-gray-400 mb-2">Monday–Friday: 6-10pm</p>
-            <p className="text-gray-400">Saturday & Sunday: 6-6pm</p>
+            <p className="text-gray-400 mb-2">Monday–Friday: 6am - 10pm </p>
+            <p className="text-gray-400">Saturday & Sunday: 6am - 6pm </p>
           </div>
           <div>
             <h3 className="text-lg mb-4">Follow</h3>
@@ -1315,6 +1328,7 @@ function Footer() {
           </div>
         </div>
 
+
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center space-x-4 mb-4 md:mb-0">
             <div className="w-12 h-12 bg-white flex items-center justify-center">
@@ -1323,6 +1337,7 @@ function Footer() {
               </div>
             </div>
           </div>
+
 
           <div className="flex items-center space-x-4">
             <Mail className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
@@ -1354,18 +1369,26 @@ function Footer() {
 
 
 
-// ----------------- App (cart state + checkout + login + chat) -----------------
+
+
+
+
+
+
+
 
 // ----------------- App (cart state + checkout + login + chat) -----------------
+
+// ----------------- App (cart state + checkout to server) -----------------
 export default function App({
+  cart,
+  setCart,
   onOrderPlaced,
   customerUser,
   onCustomerLogin,
   chatMessages = [],
   onSendChatMessage
 }) {
-  const [cart, setCart] = React.useState([]);
-
   const handleAddToCart = (item) => {
     const id = `${item.productId}-${item.variantId || 'base'}-${Date.now()}-${
       Math.random().toString(36).slice(2)
@@ -1430,11 +1453,7 @@ export default function App({
         <Route path="/services" element={<ServicesPage />} />
         <Route
           path="/service/:serviceId"
-          element={
-            <ServiceDetailPage
-              onAddToCart={handleAddToCart}
-            />
-          }
+          element={<ServiceDetailPage onAddToCart={handleAddToCart} />}
         />
 
         <Route
@@ -1469,5 +1488,7 @@ export default function App({
     </Router>
   );
 }
+
+
 
 

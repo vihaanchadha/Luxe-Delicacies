@@ -8,11 +8,14 @@ export default function RootApp() {
   const [reservations, setReservations] = useState([]);
   const [orders, setOrders] = useState([]);
 
-  // 💡 new: logged-in customer info
+  // 💡 logged-in customer info
   const [customerUser, setCustomerUser] = useState(null);
 
-  // 💬 new: shared chat thread between customer + employee
+  // 💬 shared chat thread between customer + employee
   const [chatMessages, setChatMessages] = useState([]);
+
+  // 🛒 shared cart state (customer cart lives here now)
+  const [cart, setCart] = useState([]);
 
   // called by customer App when they checkout
   const handleOrderPlaced = (cartItems) => {
@@ -20,7 +23,7 @@ export default function RootApp() {
 
     const nextId = `ORD${String(orders.length + 1).padStart(3, '0')}`;
     const total = cartItems.reduce(
-      (sum, item) => sum + item.pricePerUnit * item.quantity,
+      (sum, item) => sum + (item.pricePerUnit || 0) * item.quantity,
       0
     );
 
@@ -31,7 +34,10 @@ export default function RootApp() {
       items: cartItems.map((item) => ({
         name: item.name,
         quantity: item.quantity,
-        price: item.pricePerUnit
+        pricePerUnit: item.pricePerUnit ?? 0,
+        variantName: item.variantName || null,
+        notes: item.notes || '',
+        image: item.image || null
       })),
       total,
       orderDate: new Date().toISOString().split('T')[0],
@@ -65,6 +71,59 @@ export default function RootApp() {
     setChatMessages((prev) => [...prev, msg]);
   };
 
+  // 🔁 when employee updates price & wants to send order back to customer cart
+  // 🔁 when employee updates price & wants to send order back to customer cart
+  const handleSendOrderToCart = (orderId, overrideTotal) => {
+    const order = orders.find((o) => o.id === orderId);
+    if (!order || !order.items || order.items.length === 0) return;
+  
+    // normalize overrideTotal (might be a string from input)
+    const numericOverride =
+      typeof overrideTotal === 'string' ? Number(overrideTotal) : overrideTotal;
+  
+    const effectiveTotalRaw =
+      typeof numericOverride === 'number' && !Number.isNaN(numericOverride)
+        ? numericOverride
+        : Number(order.total) || 0;
+  
+    const effectiveTotal = effectiveTotalRaw < 0 ? 0 : effectiveTotalRaw;
+  
+    // total quantity across items (avoid 0)
+    const totalQty =
+      order.items.reduce(
+        (sum, i) => sum + (i.quantity && i.quantity > 0 ? i.quantity : 1),
+        0
+      ) || 1;
+  
+    const perUnit = effectiveTotal / totalQty;
+  
+    const newCartItems = order.items.map((item, idx) => {
+      const hasValidPrice =
+        typeof item.pricePerUnit === 'number' && item.pricePerUnit > 0;
+  
+      return {
+        id: `${order.id}-${idx}-${Date.now()}`,
+        productId: item.productId || item.name,
+        variantId: item.variantName || undefined,
+        name: item.name,
+        image:
+          item.image ||
+          'https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=400',
+        // 🧠 use employee-updated price split across quantity
+        pricePerUnit: hasValidPrice ? item.pricePerUnit : perUnit,
+        quantity: item.quantity && item.quantity > 0 ? item.quantity : 1,
+        notes: item.notes || ''
+      };
+    });
+  
+    setCart(newCartItems);
+  
+    // optional but nice: jump them back so they see the updated cart
+    // setView('customer');
+  };
+  
+  
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* top toggle bar */}
@@ -90,6 +149,8 @@ export default function RootApp() {
       <div className="pt-12">
         {view === 'customer' ? (
           <App
+            cart={cart}
+            setCart={setCart}
             onOrderPlaced={handleOrderPlaced}
             customerUser={customerUser}
             onCustomerLogin={handleCustomerLogin}
@@ -99,17 +160,16 @@ export default function RootApp() {
             }
           />
         ) : (
-          <EmployeeApp
+            <EmployeeApp
             reservations={reservations}
             setReservations={setReservations}
             orders={orders}
             setOrders={setOrders}
-            // these two are ready for when we want employee chat UI
             chatMessages={chatMessages}
-            onSendChatMessage={(text) =>
-              handleSendChatMessage('employee', text)
-            }
+            onSendChatMessage={(text) => handleSendChatMessage('employee', text)}
+            onSendOrderToCart={handleSendOrderToCart}
           />
+          
         )}
       </div>
     </div>
