@@ -9,7 +9,7 @@ import {
   MapPin
 } from 'lucide-react';
 
-// Small helper: treat some orders as "service" if they look like events
+// Detect "service-like" orders
 function isServiceOrder(order) {
   if (!order || !order.items) return false;
   return (
@@ -18,8 +18,7 @@ function isServiceOrder(order) {
   );
 }
 
-/* ───────────────────────────────── Employee Nav ───────────────────────────────── */
-
+/* ───────────────────────────── Employee Navigation ───────────────────────────── */
 function EmployeeNavigation({ viewMode, onChangeView }) {
   return (
     <nav className="w-full bg-white border-b border-gray-200 px-6 py-4 sticky top-12 z-30">
@@ -42,12 +41,14 @@ function EmployeeNavigation({ viewMode, onChangeView }) {
             <Package className="w-4 h-4" />
             <span>PENDING / ACTIVE ORDERS</span>
           </div>
-          <div className="hidden md:flex items-center gap-2">
+
+          {/* CHAT NAV ITEM */}
+          <div className="hidden md:flex items-center gap-2 relative">
             <MessageCircle className="w-4 h-4" />
             <span>CUSTOMER CHAT</span>
           </div>
 
-          {/* View toggle: Orders vs Calendar */}
+          {/* Toggle views */}
           <div className="flex items-center gap-2 ml-4">
             <button
               onClick={() => onChangeView('orders')}
@@ -77,9 +78,15 @@ function EmployeeNavigation({ viewMode, onChangeView }) {
   );
 }
 
-/* ───────────────────────────── Left Column: Orders Lists ───────────────────────────── */
+/* ───────────────────────────── LEFT COLUMN: Orders ───────────────────────────── */
 
-function OrdersColumn({ orders, selectedOrderId, onSelectOrder }) {
+function OrdersColumn({
+  orders,
+  selectedOrderId,
+  onSelectOrder,
+  hasUnreadMessages,
+  onClearNotifications
+}) {
   const newRequests = orders.filter(
     (o) =>
       !o.status ||
@@ -103,11 +110,19 @@ function OrdersColumn({ orders, selectedOrderId, onSelectOrder }) {
   const renderOrderItem = (order) => (
     <button
       key={order.id}
-      onClick={() => onSelectOrder(order)}
-      className={`w-full text-left px-3 py-2 rounded-md border mb-2 hover:bg-gray-50 ${
+      onClick={() => {
+        onSelectOrder(order);
+        onClearNotifications(); // 🔥 clear badge when employee opens ANY order
+      }}
+      className={`relative w-full text-left px-3 py-2 rounded-md border mb-2 hover:bg-gray-50 ${
         selectedOrderId === order.id ? 'border-black bg-gray-50' : 'border-gray-200'
       }`}
     >
+      {/* 🔴 Notification dot */}
+      {hasUnreadMessages && (
+        <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+      )}
+
       <div className="flex justify-between items-center">
         <div>
           <p className="text-sm font-semibold">
@@ -135,7 +150,6 @@ function OrdersColumn({ orders, selectedOrderId, onSelectOrder }) {
 
   return (
     <div className="space-y-6">
-      {/* New Requests */}
       <div>
         <h2 className="text-[11px] font-semibold text-gray-500 mb-2 tracking-[0.18em]">
           NEW REQUESTS
@@ -149,7 +163,6 @@ function OrdersColumn({ orders, selectedOrderId, onSelectOrder }) {
         )}
       </div>
 
-      {/* In Progress */}
       <div>
         <h2 className="text-[11px] font-semibold text-gray-500 mb-2 tracking-[0.18em]">
           IN PROGRESS
@@ -161,7 +174,6 @@ function OrdersColumn({ orders, selectedOrderId, onSelectOrder }) {
         )}
       </div>
 
-      {/* Completed */}
       <div>
         <h2 className="text-[11px] font-semibold text-gray-500 mb-2 tracking-[0.18em]">
           COMPLETED
@@ -173,7 +185,6 @@ function OrdersColumn({ orders, selectedOrderId, onSelectOrder }) {
         )}
       </div>
 
-      {/* Cancelled */}
       <div>
         <h2 className="text-[11px] font-semibold text-gray-500 mb-2 tracking-[0.18em]">
           CANCELLED
@@ -188,14 +199,9 @@ function OrdersColumn({ orders, selectedOrderId, onSelectOrder }) {
   );
 }
 
-/* ───────────────────────────── Middle: Order Detail Panel ───────────────────────────── */
+/* ───────────────────────────── MIDDLE PANEL ───────────────────────────── */
 
-function OrderDetailPanel({
-  order,
-  onUpdateStatus,
-  onAdjustPrice,
-  onSendToCart
-}) {
+function OrderDetailPanel({ order, onUpdateStatus, onAdjustPrice, onSendToCart }) {
   const [localTotal, setLocalTotal] = React.useState(order?.total ?? 0);
 
   React.useEffect(() => {
@@ -216,15 +222,12 @@ function OrderDetailPanel({
     const numeric = Number(localTotal);
     if (Number.isNaN(numeric)) return;
 
-    // update the order state in EmployeeApp
     onAdjustPrice(order.id, numeric);
 
-    // 💌 ALSO send the updated total directly back to RootApp
     if (onSendToCart) {
       onSendToCart(order.id, numeric);
     }
   };
-
 
   const serviceOrder = isServiceOrder(order);
 
@@ -296,20 +299,18 @@ function OrderDetailPanel({
         </div>
       </div>
 
-      {/* Service info / notes */}
+      {/* Service info */}
       <div className="bg-white border rounded-lg p-4 mb-4 text-sm">
         <h2 className="text-xs font-semibold mb-2 tracking-wide text-gray-600">
           EVENT / SERVICE DETAILS
         </h2>
         {serviceOrder ? (
           <p className="text-gray-700 mb-2">
-            This appears to be a service booking (event). Confirm event time,
-            location, and final pricing with the customer via chat.
+            Service booking event. Confirm details via chat.
           </p>
         ) : (
           <p className="text-gray-700 mb-2">
-            Prepackaged order. Use chat to confirm pickup timing or special
-            instructions.
+            Prepackaged order — confirm pickup via chat.
           </p>
         )}
 
@@ -320,16 +321,12 @@ function OrderDetailPanel({
         )}
       </div>
 
-      {/* Price adjust */}
+      {/* Price Adjust */}
       <div className="bg-white border rounded-lg p-4 mb-4">
         <h2 className="text-xs font-semibold mb-2 tracking-wide text-gray-600">
           PRICE & TOTAL
         </h2>
-        <div className="flex items-center gap-3 mb-2">
-          <label className="text-xs text-gray-500">
-            Adjust total price (for services, discounts, etc.):
-          </label>
-        </div>
+
         <div className="flex items-center gap-3">
           <div className="flex items-center border rounded px-2 py-1">
             <span className="text-sm text-gray-500 mr-1">$</span>
@@ -348,11 +345,10 @@ function OrderDetailPanel({
             Save total
           </button>
         </div>
+
         <p className="text-xs text-gray-500 mt-2">
           Current stored total:{' '}
-          <span className="font-semibold">
-            ${Number(order.total || 0).toFixed(2)}
-          </span>
+          <span className="font-semibold">${Number(order.total || 0).toFixed(2)}</span>
         </p>
       </div>
 
@@ -361,7 +357,7 @@ function OrderDetailPanel({
   );
 }
 
-/* ───────────────────────────── Right: Employee Chat Panel ───────────────────────────── */
+/* ───────────────────────────── RIGHT PANEL: Chat ───────────────────────────── */
 
 function EmployeeChatPanel({ chatMessages, onSend }) {
   const [text, setText] = useState('');
@@ -385,8 +381,7 @@ function EmployeeChatPanel({ chatMessages, onSend }) {
       <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
         {chatMessages.length === 0 ? (
           <p className="text-xs text-gray-400 italic">
-            No messages yet. When a customer logs in and uses the chat widget,
-            their messages will appear here.
+            No messages yet.
           </p>
         ) : (
           chatMessages.map((msg) => (
@@ -421,7 +416,7 @@ function EmployeeChatPanel({ chatMessages, onSend }) {
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Type a message to the customer…"
+          placeholder="Type a message…"
           className="flex-1 text-xs border border-gray-300 rounded-full px-3 py-2 outline-none focus:ring-1 focus:ring-black"
         />
         <button
@@ -435,13 +430,11 @@ function EmployeeChatPanel({ chatMessages, onSend }) {
   );
 }
 
-/* ───────────────────────────── Calendar View (Reservations + Orders) ───────────────────────────── */
+/* ───────────────────────────── CALENDAR VIEW ───────────────────────────── */
 
 function CalendarPanel({ reservations, orders, onSelectOrderFromCalendar }) {
-  // Build a combined list of "events" from reservations + orders
   const events = [];
 
-  // Reservations -> events
   reservations.forEach((r) => {
     if (!r.date) return;
     events.push({
@@ -453,11 +446,10 @@ function CalendarPanel({ reservations, orders, onSelectOrderFromCalendar }) {
       subtitle: r.customerName || '',
       location: r.location || '',
       notes: r.notes || '',
-      orderId: null // no direct order
+      orderId: null
     });
   });
 
-  // Orders -> events (mostly for service-ish orders or pickup)
   orders.forEach((o) => {
     const date = o.pickupDate || o.orderDate;
     if (!date) return;
@@ -475,33 +467,21 @@ function CalendarPanel({ reservations, orders, onSelectOrderFromCalendar }) {
     });
   });
 
-  // Sort by date + time
   events.sort((a, b) => {
-    const dA = new Date(a.date || '');
-    const dB = new Date(b.date || '');
-    if (dA.getTime() !== dB.getTime()) return dA - dB;
-    if (a.time && b.time) return a.time.localeCompare(b.time);
-    return 0;
+    const dA = new Date(a.date);
+    const dB = new Date(b.date);
+    return dA - dB;
   });
 
-  // Group by date
-  const groupedByDate = events.reduce((acc, ev) => {
-    if (!acc[ev.date]) acc[ev.date] = [];
-    acc[ev.date].push(ev);
-    return acc;
-  }, {});
+  const grouped = {};
+  for (const ev of events) {
+    if (!grouped[ev.date]) grouped[ev.date] = [];
+    grouped[ev.date].push(ev);
+  }
 
-  const dateKeys = Object.keys(groupedByDate).sort(
+  const dateKeys = Object.keys(grouped).sort(
     (a, b) => new Date(a) - new Date(b)
   );
-
-  if (events.length === 0) {
-    return (
-      <div className="h-full flex items-center justify-center text-sm text-gray-400">
-        No events yet. When reservations or service orders are added, they'll show here.
-      </div>
-    );
-  }
 
   return (
     <div className="h-full overflow-y-auto">
@@ -519,64 +499,41 @@ function CalendarPanel({ reservations, orders, onSelectOrderFromCalendar }) {
               <CalendarIcon className="w-3 h-3 text-gray-500" />
               <p className="text-xs font-semibold text-gray-700">{date}</p>
             </div>
+
             <div className="p-3 space-y-2">
-              {groupedByDate[date].map((ev) => (
+              {grouped[date].map((ev) => (
                 <button
                   key={ev.id}
                   type="button"
                   onClick={() => {
-                    if (ev.orderId && onSelectOrderFromCalendar) {
+                    if (ev.orderId && onSelectOrderFromCalendar)
                       onSelectOrderFromCalendar(ev.orderId);
-                    }
                   }}
-                  className={`w-full text-left rounded-lg border border-gray-200 px-3 py-2 text-xs flex flex-col gap-1 hover:bg-gray-50 ${
-                    ev.orderId ? 'cursor-pointer' : 'cursor-default'
-                  }`}
+                  className={`w-full text-left rounded-lg border border-gray-200 px-3 py-2 text-xs hover:bg-gray-50`}
                 >
                   <div className="flex justify-between items-center">
                     <span className="font-semibold">{ev.title}</span>
-                    <span
-                      className={`px-2 py-[2px] rounded-full text-[10px] uppercase tracking-wide ${
-                        ev.type === 'reservation'
-                          ? 'bg-pink-50 text-pink-700'
-                          : ev.type === 'service-order'
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {ev.type === 'reservation'
-                        ? 'Reservation'
-                        : ev.type === 'service-order'
-                        ? 'Service Order'
-                        : 'Order'}
+                    <span className="px-2 py-[2px] rounded-full text-[10px] uppercase tracking-wide bg-gray-100 text-gray-600">
+                      {ev.type.toUpperCase()}
                     </span>
                   </div>
                   {ev.subtitle && (
                     <p className="text-[11px] text-gray-600">{ev.subtitle}</p>
                   )}
-                  <div className="flex items-center gap-3 text-[11px] text-gray-500">
-                    {ev.time && (
-                      <span className="inline-flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {ev.time}
-                      </span>
-                    )}
-                    {ev.location && (
-                      <span className="inline-flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {ev.location}
-                      </span>
-                    )}
-                  </div>
-                  {ev.notes && (
-                    <p className="text-[11px] text-gray-400">
-                      Notes: {ev.notes}
+                  {ev.time && (
+                    <p className="flex items-center gap-1 text-[11px] text-gray-500">
+                      <Clock className="w-3 h-3" />
+                      {ev.time}
                     </p>
                   )}
-                  {ev.orderId && (
-                    <p className="text-[10px] text-gray-400 mt-1">
-                      Click to open order #{ev.orderId} details.
+                  {ev.location && (
+                    <p className="flex items-center gap-1 text-[11px] text-gray-500">
+                      <MapPin className="w-3 h-3" />
+                      {ev.location}
                     </p>
+                  )}
+                  {ev.notes && (
+                    <p className="text-[11px] text-gray-400">Notes: {ev.notes}</p>
                   )}
                 </button>
               ))}
@@ -588,7 +545,7 @@ function CalendarPanel({ reservations, orders, onSelectOrderFromCalendar }) {
   );
 }
 
-/* ───────────────────────────── Main EmployeeApp ───────────────────────────── */
+/* ───────────────────────────── MAIN EMPLOYEE APP ───────────────────────────── */
 
 export default function EmployeeApp({
   reservations = [],
@@ -596,12 +553,12 @@ export default function EmployeeApp({
   orders = [],
   setOrders = () => {},
   chatMessages = [],
+  hasUnreadMessages = false,     // ⭐ added
+  onClearNotifications = () => {}, // ⭐ added
   onSendChatMessage = () => {},
   onSendOrderToCart = () => {}
 }) {
-
-
-  const [viewMode, setViewMode] = useState('orders'); // 'orders' | 'calendar'
+  const [viewMode, setViewMode] = useState('orders');
   const [selectedOrderId, setSelectedOrderId] = useState(orders[0]?.id || null);
 
   const selectedOrder =
@@ -623,8 +580,6 @@ export default function EmployeeApp({
     );
   };
 
-  // 🔗 when clicking a calendar event that corresponds to an order,
-  // jump to Orders view and open its detail
   const handleSelectOrderFromCalendar = (orderId) => {
     setSelectedOrderId(orderId);
     setViewMode('orders');
@@ -637,16 +592,18 @@ export default function EmployeeApp({
       <main className="max-w-7xl mx-auto px-4 py-6">
         {viewMode === 'orders' ? (
           <div className="grid grid-cols-1 lg:grid-cols-[0.8fr,1.2fr,1fr] gap-6 min-h-[70vh]">
-            {/* LEFT: lists */}
+            {/* LEFT: Orders */}
             <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
               <OrdersColumn
                 orders={orders}
                 selectedOrderId={selectedOrderId}
                 onSelectOrder={handleSelectOrder}
+                hasUnreadMessages={hasUnreadMessages}    // ⭐ added
+                onClearNotifications={onClearNotifications} // ⭐ added
               />
             </div>
 
-            {/* MIDDLE: detail */}
+            {/* MIDDLE: Order Detail */}
             <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
               <OrderDetailPanel
                 order={selectedOrder}
@@ -654,10 +611,9 @@ export default function EmployeeApp({
                 onAdjustPrice={handleAdjustPrice}
                 onSendToCart={onSendOrderToCart}
               />
-
             </div>
 
-            {/* RIGHT: chat */}
+            {/* RIGHT: Chat */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <EmployeeChatPanel
                 chatMessages={chatMessages}
@@ -666,9 +622,9 @@ export default function EmployeeApp({
             </div>
           </div>
         ) : (
-          // Calendar view
+          /* CALENDAR VIEW */
           <div className="grid grid-cols-1 lg:grid-cols-[1.4fr,1fr] gap-6 min-h-[70vh]">
-            {/* LEFT: calendar */}
+            {/* Calendar */}
             <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
               <CalendarPanel
                 reservations={reservations}
@@ -677,7 +633,7 @@ export default function EmployeeApp({
               />
             </div>
 
-            {/* RIGHT: chat stays the same */}
+            {/* Chat stays visible */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <EmployeeChatPanel
                 chatMessages={chatMessages}
